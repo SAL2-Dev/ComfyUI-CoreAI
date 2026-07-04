@@ -197,14 +197,26 @@ class CoreAIRunner:
     # --- Internal ----------------------------------------------------------
 
     def _wait_for_ready(self) -> bool:
-        """Wait for the .ready file to appear (socket is listening)."""
+        """Wait for the .ready file to appear (socket is listening).
+        Verifies the PID inside the file matches our subprocess
+        (detects stale .ready files from a previous crash)."""
         ready_path = SOCKET_PATH + ".ready"
         deadline = time.monotonic() + READY_TIMEOUT
         while time.monotonic() < deadline:
             if self._process and self._process.poll() is not None:
                 return False  # process died
             if os.path.exists(ready_path):
-                return True
+                # Verify the PID matches our process (stale file detection)
+                try:
+                    with open(ready_path, "r") as f:
+                        ready_pid = int(f.read().strip())
+                    if self._process and ready_pid == self._process.pid:
+                        return True
+                    # Stale .ready file (different PID) — remove and keep waiting
+                    os.unlink(ready_path)
+                except (ValueError, OSError):
+                    # Can't read PID — just trust the file exists
+                    return True
             time.sleep(0.05)
         return False
 
