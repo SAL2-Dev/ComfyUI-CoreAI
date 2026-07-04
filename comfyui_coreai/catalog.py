@@ -8,6 +8,7 @@ and what they can do — node UIs read from here.
 from __future__ import annotations
 
 import logging
+import re
 import time
 from typing import Any
 
@@ -105,16 +106,49 @@ def get_model(model_id: str) -> dict[str, Any] | None:
     return cached
 
 
+_SIZE_UNITS = {"B": 1, "KB": 1e3, "MB": 1e6, "GB": 1e9, "TB": 1e12}
+
+
+def _artifact_size_bytes(model: dict[str, Any]) -> float:
+    """Parse ``size.artifact_size`` ('969MB', '54.5 MB', '4.01GB') into bytes so
+    the dropdown can sort smallest-first. Unknown/unparseable sizes sort last."""
+    raw = ((model.get("size") or {}).get("artifact_size") or "").strip()
+    match = re.match(r"([\d.]+)\s*([KMGT]?B)\b", raw, re.IGNORECASE)
+    if not match:
+        return float("inf")
+    return float(match.group(1)) * _SIZE_UNITS.get(match.group(2).upper(), 1)
+
+
+def _runs_on_this_mac(model: dict[str, Any]) -> bool:
+    """Hard gate for the picker: keep models actually usable on Apple Silicon
+    macOS. Drops only entries whose artifact is not available or that are
+    explicitly marked non-mac. ``device_support.mac == 'unknown'`` (and missing)
+    is KEPT on purpose — under-curated/community entries must not be penalized."""
+    if (model.get("artifact") or {}).get("availability") not in (None, "available"):
+        return False
+    if (model.get("size") or {}).get("artifact_size") == "not_published":
+        return False  # explicit "can't download this yet" marker
+    if (model.get("device_support") or {}).get("mac") is False:
+        return False
+    return True
+
+
 def model_dropdown(capability: str | None = None) -> list[str]:
     """
     Get a list of model IDs for populating ComfyUI dropdowns.
-    Filtered by capability and sorted by readiness score (highest first).
+
+    Filtered by capability, hard-gated to models that run on this Mac (available
+    artifact, not explicitly non-mac), then sorted smallest-first so the lightest
+    usable model is the default — an honest, capability-blind order.
+
+    We deliberately do NOT sort by the catalog's ``readiness_score``: it is a
+    curation/deployability composite that is blind to model quality (it inversely
+    tracks capability), and it is not emitted per-entry on catalog.json anyway,
+    so the old sort silently collapsed to alphabetical and surfaced the LEAST
+    ready model as the default. See the SotA red-team notes.
     """
-    models = list_models(capability=capability)
-    # Sort by readiness score descending, fallback to name
-    models.sort(
-        key=lambda m: (-(m.get("readiness_score") or 0), m.get("name", ""))
-    )
+    models = [m for m in list_models(capability=capability) if _runs_on_this_mac(m)]
+    models.sort(key=lambda m: (_artifact_size_bytes(m), m.get("name", "")))
     return [m["id"] for m in models if m.get("id")]
 
 
