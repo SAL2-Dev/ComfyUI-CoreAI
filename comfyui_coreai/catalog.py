@@ -15,7 +15,7 @@ import httpx
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
-CATALOG_API = "https://coreai-catalog.nousresearch.com/v1"
+CATALOG_API = "https://raw.githubusercontent.com/kevinqz/coreai-catalog/main/dist"
 CACHE_TTL = 300  # 5 minutes
 
 # Module-level cache (in-process, shared across all nodes)
@@ -41,6 +41,9 @@ def list_models(
     List models from the catalog, optionally filtered by capability and/or device.
     Returns a list of model entry dicts.
 
+    The catalog is distributed as static JSON on GitHub Pages:
+      https://raw.githubusercontent.com/kevinqz/coreai-catalog/main/dist/catalog.json
+
     On network failure, returns the stale cache (or empty list if no cache).
     """
     cache_key = f"models:{capability or ''}:{device or ''}"
@@ -48,23 +51,33 @@ def list_models(
     if cached is not None:
         return cached
 
-    params: dict[str, str] = {}
-    if capability:
-        params["capability"] = capability
-    if device:
-        params["device"] = device
-
+    # Fetch the full catalog JSON (it's a static file, not a queryable API)
     try:
-        with httpx.Client(timeout=10.0) as client:
-            resp = client.get(f"{CATALOG_API}/models", params=params)
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.get(f"{CATALOG_API}/catalog.json")
             resp.raise_for_status()
             data = resp.json()
+            # catalog.json has { "models": [...] }
             models = data.get("models", data) if isinstance(data, dict) else data
-            _set_cached(cache_key, models)
-            return models
     except Exception as e:
-        logger.warning("Catalog API unreachable: %s — returning cached data", e)
+        logger.warning("Catalog fetch failed: %s — returning cached data", e)
         return cached or []
+
+    # Apply filters client-side
+    filtered = models
+    if capability:
+        filtered = [m for m in filtered if capability in (m.get("capabilities") or [])]
+    if device:
+        ds = lambda m: m.get("device_support") or {}
+        if device == "mac":
+            filtered = [m for m in filtered if ds(m).get("mac") or ds(m).get("mac_only")]
+        elif device == "iphone":
+            filtered = [m for m in filtered if ds(m).get("iphone")]
+        elif device == "ipad":
+            filtered = [m for m in filtered if ds(m).get("ipad")]
+
+    _set_cached(cache_key, filtered)
+    return filtered
 
 
 def get_model(model_id: str) -> dict[str, Any] | None:
@@ -74,16 +87,21 @@ def get_model(model_id: str) -> dict[str, Any] | None:
     if cached is not None:
         return cached
 
+    # The catalog is a flat JSON file — fetch and filter
     try:
-        with httpx.Client(timeout=10.0) as client:
-            resp = client.get(f"{CATALOG_API}/models/{model_id}")
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.get(f"{CATALOG_API}/catalog.json")
             resp.raise_for_status()
-            model = resp.json()
-            _set_cached(cache_key, model)
-            return model
+            data = resp.json()
+            models = data.get("models", data) if isinstance(data, dict) else data
+            for m in models:
+                if m.get("id") == model_id:
+                    _set_cached(cache_key, m)
+                    return m
     except Exception as e:
-        logger.warning("Catalog API unreachable for model '%s': %s", model_id, e)
-        return cached
+        logger.warning("Catalog fetch failed for '%s': %s", model_id, e)
+
+    return cached
 
 
 def model_dropdown(capability: str | None = None) -> list[str]:
