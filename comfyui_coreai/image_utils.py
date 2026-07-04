@@ -9,7 +9,6 @@ The Swift runner expects file paths (PNG). This module bridges the two:
 
 from __future__ import annotations
 
-import io
 import tempfile
 import uuid
 from pathlib import Path

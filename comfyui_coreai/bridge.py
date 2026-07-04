@@ -152,9 +152,17 @@ class CoreAIRunner:
         max_tokens: int | None = None,
         temperature: float | None = None,
         score_threshold: float | None = None,
+        text_prompt: str | None = None,
         compute_unit: str = "auto",
     ) -> dict[str, Any]:
-        """POST /v1/predict — run inference and return result."""
+        """POST /v1/predict — run inference and return result.
+
+        Wire keys inside ``input``/``options`` are snake_case — the SotA
+        convention for this API, matching coreai-catalog, ComfyUI, and the
+        HuggingFace/LLM ecosystem. The Swift runner maps these to its idiomatic
+        camelCase Swift properties via explicit snake_case CodingKeys (see
+        coreai-runner Codables.swift). Keep this in sync with that repo.
+        """
         self.ensure_running()
         assert self._client is not None
 
@@ -173,6 +181,8 @@ class CoreAIRunner:
             payload["input"]["temperature"] = temperature
         if score_threshold is not None:
             payload["input"]["score_threshold"] = score_threshold
+        if text_prompt:
+            payload["input"]["text_prompt"] = text_prompt
 
         resp = self._client.post("/v1/predict", json=payload)
         resp.raise_for_status()

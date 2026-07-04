@@ -44,7 +44,7 @@ def composite_masks(masks: list[dict], width: int, height: int):
     composite = np.zeros((height, width), dtype=np.float32)
 
     for mask_info in masks:
-        mask_path = mask_info.get("maskPath")
+        mask_path = mask_info.get("mask_path")
         if not mask_path:
             continue
         try:
@@ -110,7 +110,6 @@ class CoreAISegmentation:
         input_path = tensor_to_png(image)
 
         try:
-            import torch
             img_np = image.detach().cpu().numpy()
             if img_np.ndim == 4:
                 img_np = img_np[0]
@@ -127,7 +126,7 @@ class CoreAISegmentation:
                 score_threshold=score_threshold,
             )
 
-            masks = result["output"].get("maskPaths", [])
+            masks = result["output"].get("mask_paths", [])
             filtered = [m for m in masks if m.get("score", 0) >= score_threshold]
             composite = composite_masks(filtered, w, h)
 

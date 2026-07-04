@@ -96,7 +96,6 @@ class CoreAIHealthCheck:
             runner = get_runner()
             health = runner.health()
 
-            import json
             status = (
                 f"Device: {health.get('device', '?')}\n"
                 f"Chip: {health.get('chip', '?')}\n"

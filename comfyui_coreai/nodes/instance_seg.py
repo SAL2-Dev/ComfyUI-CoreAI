@@ -12,8 +12,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import numpy as np
-
 from .. import catalog
 from ..bridge import get_runner
 from ..image_utils import tensor_to_png, cleanup_temp

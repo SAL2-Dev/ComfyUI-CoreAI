@@ -17,7 +17,7 @@ import numpy as np
 
 from .. import catalog
 from ..bridge import get_runner
-from ..image_utils import tensor_to_png, load_output_image, cleanup_temp
+from ..image_utils import tensor_to_png, cleanup_temp
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
