@@ -1,0 +1,92 @@
+"""
+nodes/embedding.py — CoreAI CLIP Image-Text Similarity node for ComfyUI.
+
+Computes CLIP ViT-B/32 embeddings for images and/or text. Useful for
+prompt scoring, image retrieval, or evaluating diffusion outputs.
+
+Models: CLIP ViT-B/32 (151M, fp16, MIT license)
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from .. import catalog
+from ..bridge import get_runner
+from ..image_utils import tensor_to_png, cleanup_temp
+
+logger = logging.getLogger("ComfyUI-CoreAI")
+
+_EMBED_MODELS: list[str] | None = None
+
+
+def _get_embed_models() -> list[str]:
+    global _EMBED_MODELS
+    if _EMBED_MODELS is None:
+        _EMBED_MODELS = catalog.model_dropdown(capability="image-text-similarity")
+        if not _EMBED_MODELS:
+            _EMBED_MODELS = ["official-clip-vit-base-patch32"]
+    return _EMBED_MODELS
+
+
+class CoreAIImageTextSimilarity:
+    """
+    CLIP Image-Text Similarity using Apple Core AI.
+
+    Computes cosine similarity between an image and one or more text
+    captions. Useful for prompt scoring or image retrieval.
+    """
+
+    @classmethod
+    def INPUT_TYPES(cls) -> dict[str, Any]:
+        models = _get_embed_models()
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "captions": (
+                    "STRING",
+                    {
+                        "default": "a photo of a cat\na photo of a dog\na landscape",
+                        "multiline": True,
+                        "tooltip": "One caption per line.",
+                    },
+                ),
+                "model": (
+                    models,
+                    {"default": models[0] if models else "official-clip-vit-base-patch32"},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("scores",)
+    FUNCTION = "compute_similarity"
+    CATEGORY = "CoreAI/Analysis"
+
+    def compute_similarity(self, image, captions: str, model: str):
+        input_path = tensor_to_png(image)
+        caption_list = [c.strip() for c in captions.split("\n") if c.strip()]
+
+        try:
+            runner = get_runner()
+            result = runner.predict(
+                model_id=model,
+                image_path=input_path,
+                prompt="|||".join(caption_list),
+            )
+
+            text_output = result["output"].get("text", "")
+            if text_output:
+                try:
+                    import json
+                    scores = json.loads(text_output)
+                    if isinstance(scores, list):
+                        lines = [f"{s:.4f}  {c}" for s, c in zip(scores, caption_list)]
+                        return ("\n".join(lines),)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+            return (text_output or "No scores returned",)
+        finally:
+            cleanup_temp(input_path)
