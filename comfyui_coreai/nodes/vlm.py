@@ -116,7 +116,7 @@ class CoreAIVisionLanguage:
             text = result["output"].get("text", "")
 
             timing = result.get("timing", {})
-            ms = timing.get("totalMs", 0)
+            ms = timing.get("total_ms", 0)
             tokens = len(text.split())
             logger.info(
                 "CoreAI VLM [%s]: %d words in %.1fms (%.0f words/s)",

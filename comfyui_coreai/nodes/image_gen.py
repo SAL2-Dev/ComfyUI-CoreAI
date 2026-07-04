@@ -72,15 +72,15 @@ class CoreAIImageGeneration:
             runner = get_runner()
             result = runner.predict(model_id=model, prompt=prompt)
 
-            output_path = result["output"].get("outputPath")
+            output_path = result["output"].get("output_path")
             if not output_path:
-                raise RuntimeError(f"Runner returned no outputPath. Response: {result}")
+                raise RuntimeError(f"Runner returned no output_path. Response: {result}")
 
             image_tensor = load_output_image(output_path)
             cleanup_temp(output_path)
 
             timing = result.get("timing", {})
-            ms = timing.get("totalMs", 0)
+            ms = timing.get("total_ms", 0)
             logger.info("CoreAI ImageGen [%s]: %.1fms (%.1fs)", model, ms, ms / 1000)
 
             return (image_tensor,)

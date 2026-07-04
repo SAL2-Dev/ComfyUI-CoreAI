@@ -169,7 +169,7 @@ class CoreAIObjectDetection:
             detections_json = json.dumps(detections, indent=2)
 
             timing = result.get("timing", {})
-            ms = timing.get("totalMs", 0)
+            ms = timing.get("total_ms", 0)
             logger.info(
                 "CoreAI Detect [%s]: %d objects in %.1fms",
                 model, num, ms,

@@ -13,8 +13,11 @@ It speaks the exact same wire protocol as the Swift server:
   * writes ``<socket>.ready`` containing its PID once the socket is listening.
   * routes: GET /v1/health, GET /v1/models, POST /v1/predict,
             POST /v1/models/{id}/load, POST /v1/models/{id}/unload.
-  * response JSON uses the runner's camelCase convention (matches
-    coreai-runner's Codables.swift — only ``model_id``/``size_mb`` are snake_case).
+  * request/response JSON uses snake_case keys — the SotA convention for this
+    API (matches coreai-catalog, ComfyUI, and the HF/LLM ecosystem). The real
+    Swift runner maps these to its camelCase Swift properties via explicit
+    snake_case CodingKeys. ``kind`` VALUES (e.g. "depthMap") stay verbatim —
+    they are the runner's enum values, not wire keys.
 
 Zero third-party dependencies (stdlib only, incl. a tiny pure-Python PNG writer),
 so it runs under any python3 — including Linux CI, where AF_UNIX works fine.
@@ -139,17 +142,17 @@ def build_predict_response(body: dict) -> dict:
     inp = body.get("input") or {}
     options = body.get("options") or {}
     capability = capability_for(model_id)
-    image_path = inp.get("imagePath")
+    image_path = inp.get("image_path")
     width, height = png_size(image_path)
 
     if capability == "monocular-depth":
         out_path = _tmp_png("coreai_mock_depth")
         write_gray_png(out_path, width, height, gradient=True)
-        output = {"kind": "depthMap", "outputPath": out_path}
+        output = {"kind": "depthMap", "output_path": out_path}
     elif capability == "image-generation":
         out_path = _tmp_png("coreai_mock_gen")
         write_gray_png(out_path, 512, 512, gradient=True)
-        output = {"kind": "image", "outputPath": out_path}
+        output = {"kind": "image", "output_path": out_path}
     elif capability in ("object-detection", "instance-segmentation"):
         output = {"kind": "detections", "detections": _mock_detections()}
     elif capability == "vision-language":
@@ -162,11 +165,11 @@ def build_predict_response(body: dict) -> dict:
             mask_path = _tmp_png("coreai_mock_mask")
             write_gray_png(mask_path, width, height, fill=255)
             masks.append({
-                "maskPath": mask_path,
+                "mask_path": mask_path,
                 "score": round(0.95 - 0.10 * i, 3),
                 "bbox": [0.10 + 0.10 * i, 0.10, 0.50 + 0.10 * i, 0.60],
             })
-        output = {"kind": "masks", "maskPaths": masks}
+        output = {"kind": "masks", "mask_paths": masks}
     elif capability == "image-text-similarity":
         captions = (inp.get("prompt") or "").split("|||")
         scores = [round(max(0.0, 0.90 - 0.15 * i), 4) for i in range(len(captions))]
@@ -175,12 +178,12 @@ def build_predict_response(body: dict) -> dict:
         output = {"kind": "detections", "detections": _mock_detections()}
 
     timing = {
-        "loadMs": 1.0,
-        "preprocessMs": 0.0,
-        "inferenceMs": 5.0,
-        "postprocessMs": 0.5,
-        "totalMs": 6.5,
-        "computeUnitUsed": _compute_unit_label(options.get("computeUnit")),
+        "load_ms": 1.0,
+        "preprocess_ms": 0.0,
+        "inference_ms": 5.0,
+        "postprocess_ms": 0.5,
+        "total_ms": 6.5,
+        "compute_unit_used": _compute_unit_label(options.get("compute_unit")),
     }
     return {"model_id": model_id, "output": output, "timing": timing}
 
@@ -190,19 +193,19 @@ def build_health_response() -> dict:
         "status": "ok",
         "device": platform.node() or "Mac",
         "chip": "Apple Silicon (mock runner)",
-        "memoryTotalGB": 24.0,
-        "memoryAvailableGB": 12.0,
-        "macosVersion": platform.mac_ver()[0] or "26.0",
-        "coreaiVersion": "mock-0.1",
-        "loadedModels": [],
-        "thermalState": "nominal",
+        "memory_total_gb": 24.0,
+        "memory_available_gb": 12.0,
+        "macos_version": platform.mac_ver()[0] or "26.0",
+        "coreai_version": "mock-0.1",
+        "loaded_models": [],
+        "thermal_state": "nominal",
     }
 
 
 def _model_entry(mid: str, name: str, family: str, cap: str) -> dict:
     return {
         "id": mid, "name": name, "family": family, "capability": cap,
-        "deviceSupport": ["mac"], "installed": False, "loaded": False,
+        "device_support": ["mac"], "installed": False, "loaded": False,
     }
 
 

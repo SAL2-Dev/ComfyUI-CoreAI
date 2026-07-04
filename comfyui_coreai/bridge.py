@@ -157,10 +157,11 @@ class CoreAIRunner:
     ) -> dict[str, Any]:
         """POST /v1/predict — run inference and return result.
 
-        Wire keys inside ``input``/``options`` use the runner's camelCase
-        convention (matches the Swift server's Codable structs, which only
-        remap ``model_id``/``size_mb`` to snake_case). Keep this in sync with
-        coreai-runner's Codables.swift.
+        Wire keys inside ``input``/``options`` are snake_case — the SotA
+        convention for this API, matching coreai-catalog, ComfyUI, and the
+        HuggingFace/LLM ecosystem. The Swift runner maps these to its idiomatic
+        camelCase Swift properties via explicit snake_case CodingKeys (see
+        coreai-runner Codables.swift). Keep this in sync with that repo.
         """
         self.ensure_running()
         assert self._client is not None
@@ -168,20 +169,20 @@ class CoreAIRunner:
         payload: dict[str, Any] = {
             "model_id": model_id,
             "input": {},
-            "options": {"computeUnit": compute_unit},
+            "options": {"compute_unit": compute_unit},
         }
         if image_path:
-            payload["input"]["imagePath"] = image_path
+            payload["input"]["image_path"] = image_path
         if prompt:
             payload["input"]["prompt"] = prompt
         if max_tokens is not None:
-            payload["input"]["maxTokens"] = max_tokens
+            payload["input"]["max_tokens"] = max_tokens
         if temperature is not None:
             payload["input"]["temperature"] = temperature
         if score_threshold is not None:
-            payload["input"]["scoreThreshold"] = score_threshold
+            payload["input"]["score_threshold"] = score_threshold
         if text_prompt:
-            payload["input"]["textPrompt"] = text_prompt
+            payload["input"]["text_prompt"] = text_prompt
 
         resp = self._client.post("/v1/predict", json=payload)
         resp.raise_for_status()

@@ -91,7 +91,7 @@ class CoreAIInstanceSegmentation:
             detections_json = json.dumps(detections, indent=2)
 
             timing = result.get("timing", {})
-            ms = timing.get("totalMs", 0)
+            ms = timing.get("total_ms", 0)
             logger.info("CoreAI InstanceSeg [%s]: %d instances in %.1fms", model, num, ms)
 
             return (annotated, detections_json)

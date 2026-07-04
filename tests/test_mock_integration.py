@@ -67,8 +67,8 @@ def runner():
 def test_health_returns_camelcase_keys(runner):
     health = runner.health()
     assert health["status"] == "ok"
-    for key in ("memoryTotalGB", "memoryAvailableGB", "macosVersion",
-                "coreaiVersion", "thermalState", "loadedModels"):
+    for key in ("memory_total_gb", "memory_available_gb", "macos_version",
+                "coreai_version", "thermal_state", "loaded_models"):
         assert key in health, f"missing {key}"
 
 
@@ -82,9 +82,9 @@ def test_depth(runner, tmp_path):
     img = _write_tiny_png(tmp_path / "in.png")
     result = runner.predict(model_id="depth-anything-3-small", image_path=img)
     assert result["output"]["kind"] == "depthMap"
-    assert _is_png(result["output"]["outputPath"])
-    assert "totalMs" in result["timing"]
-    assert result["timing"]["computeUnitUsed"]
+    assert _is_png(result["output"]["output_path"])
+    assert "total_ms" in result["timing"]
+    assert result["timing"]["compute_unit_used"]
 
 
 def test_object_detection(runner, tmp_path):
@@ -109,8 +109,8 @@ def test_promptable_segmentation(runner, tmp_path):
     # text_prompt exercises the param that previously TypeError'd in bridge.predict
     result = runner.predict(model_id="official-sam-3", image_path=img,
                             text_prompt="cat", score_threshold=0.3)
-    masks = result["output"]["maskPaths"]
-    assert masks and _is_png(masks[0]["maskPath"])
+    masks = result["output"]["mask_paths"]
+    assert masks and _is_png(masks[0]["mask_path"])
     assert "score" in masks[0]
 
 
@@ -133,4 +133,4 @@ def test_image_generation(runner):
     result = runner.predict(model_id="official-flux-2-klein-4b",
                             prompt="a serene landscape")
     assert result["output"]["kind"] == "image"
-    assert _is_png(result["output"]["outputPath"])
+    assert _is_png(result["output"]["output_path"])
