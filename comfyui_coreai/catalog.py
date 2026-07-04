@@ -68,7 +68,8 @@ def list_models(
     if capability:
         filtered = [m for m in filtered if capability in (m.get("capabilities") or [])]
     if device:
-        ds = lambda m: m.get("device_support") or {}
+        def ds(m):
+            return m.get("device_support") or {}
         if device == "mac":
             filtered = [m for m in filtered if ds(m).get("mac") or ds(m).get("mac_only")]
         elif device == "iphone":

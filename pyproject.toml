@@ -32,3 +32,11 @@ Repository = "https://github.com/kevinqz/ComfyUI-CoreAI"
 
 [tool.setuptools]
 packages = ["comfyui_coreai", "comfyui_coreai.nodes"]
+
+[tool.ruff]
+target-version = "py310"
+
+[tool.ruff.lint]
+# E402: module-level imports not at top of file — intentional in ComfyUI nodes
+# (torch is a runtime-only dependency, imported lazily/guarded).
+ignore = ["E402"]

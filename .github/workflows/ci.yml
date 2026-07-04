@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
-    paths: ['comfyui_coreai/**', 'install.py', 'pyproject.toml']
+    paths: ['comfyui_coreai/**', 'install.py', 'pyproject.toml', 'tools/**', 'tests/**']
   pull_request:
-    paths: ['comfyui_coreai/**', 'install.py', 'pyproject.toml']
+    paths: ['comfyui_coreai/**', 'install.py', 'pyproject.toml', 'tools/**', 'tests/**']
 
 jobs:
   lint-and-test:
@@ -23,7 +23,7 @@ jobs:
         run: pip install httpx numpy pillow pytest ruff
 
       - name: Lint (ruff)
-        run: ruff check comfyui_coreai/ install.py --ignore E402,W503
+        run: ruff check .
 
       - name: Import smoke test
         run: |
@@ -41,3 +41,6 @@ jobs:
           ok, msg = check_environment()
           print(f'Environment check: ok={ok}, msg={msg}')
           "
+
+      - name: Integration test (mock runner ↔ bridge)
+        run: pytest tests/ -v

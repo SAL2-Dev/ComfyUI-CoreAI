@@ -86,18 +86,18 @@ class CoreAIDepthEstimation:
             )
 
             # 3. Load output
-            output_path = result["output"].get("output_path")
+            output_path = result["output"].get("outputPath")
             if not output_path:
                 raise RuntimeError(
-                    f"Runner returned no output_path. Full response: {result}"
+                    f"Runner returned no outputPath. Full response: {result}"
                 )
 
             depth_tensor = load_output_image(output_path)
 
             # Log timing
             timing = result.get("timing", {})
-            ms = timing.get("total_ms", 0)
-            unit = timing.get("compute_unit_used", "?")
+            ms = timing.get("totalMs", 0)
+            unit = timing.get("computeUnitUsed", "?")
             logger.info(
                 "CoreAI Depth [%s] %s: %.1fms (%s)",
                 model,

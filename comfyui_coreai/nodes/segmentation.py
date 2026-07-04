@@ -110,7 +110,6 @@ class CoreAISegmentation:
         input_path = tensor_to_png(image)
 
         try:
-            import torch
             img_np = image.detach().cpu().numpy()
             if img_np.ndim == 4:
                 img_np = img_np[0]
@@ -135,7 +134,7 @@ class CoreAISegmentation:
             segment_info = json.dumps(filtered, indent=2)
 
             timing = result.get("timing", {})
-            ms = timing.get("total_ms", 0)
+            ms = timing.get("totalMs", 0)
             logger.info("CoreAI Segmentation [%s]: %d segments in %.1fms", model, len(filtered), ms)
 
             return (composite, composite, segment_info)

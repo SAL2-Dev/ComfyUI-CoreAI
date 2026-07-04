@@ -152,27 +152,36 @@ class CoreAIRunner:
         max_tokens: int | None = None,
         temperature: float | None = None,
         score_threshold: float | None = None,
+        text_prompt: str | None = None,
         compute_unit: str = "auto",
     ) -> dict[str, Any]:
-        """POST /v1/predict — run inference and return result."""
+        """POST /v1/predict — run inference and return result.
+
+        Wire keys inside ``input``/``options`` use the runner's camelCase
+        convention (matches the Swift server's Codable structs, which only
+        remap ``model_id``/``size_mb`` to snake_case). Keep this in sync with
+        coreai-runner's Codables.swift.
+        """
         self.ensure_running()
         assert self._client is not None
 
         payload: dict[str, Any] = {
             "model_id": model_id,
             "input": {},
-            "options": {"compute_unit": compute_unit},
+            "options": {"computeUnit": compute_unit},
         }
         if image_path:
-            payload["input"]["image_path"] = image_path
+            payload["input"]["imagePath"] = image_path
         if prompt:
             payload["input"]["prompt"] = prompt
         if max_tokens is not None:
-            payload["input"]["max_tokens"] = max_tokens
+            payload["input"]["maxTokens"] = max_tokens
         if temperature is not None:
             payload["input"]["temperature"] = temperature
         if score_threshold is not None:
-            payload["input"]["score_threshold"] = score_threshold
+            payload["input"]["scoreThreshold"] = score_threshold
+        if text_prompt:
+            payload["input"]["textPrompt"] = text_prompt
 
         resp = self._client.post("/v1/predict", json=payload)
         resp.raise_for_status()

@@ -96,16 +96,15 @@ class CoreAIHealthCheck:
             runner = get_runner()
             health = runner.health()
 
-            import json
             status = (
                 f"Device: {health.get('device', '?')}\n"
                 f"Chip: {health.get('chip', '?')}\n"
-                f"Memory: {health.get('memory_available_gb', 0):.1f} / "
-                f"{health.get('memory_total_gb', 0):.1f} GB free\n"
-                f"OS: {health.get('macos_version', '?')}\n"
-                f"Core AI: {health.get('coreai_version', '?')}\n"
-                f"Thermal: {health.get('thermal_state', '?')}\n"
-                f"Loaded models: {', '.join(health.get('loaded_models', [])) or 'none'}"
+                f"Memory: {health.get('memoryAvailableGB', 0):.1f} / "
+                f"{health.get('memoryTotalGB', 0):.1f} GB free\n"
+                f"OS: {health.get('macosVersion', '?')}\n"
+                f"Core AI: {health.get('coreaiVersion', '?')}\n"
+                f"Thermal: {health.get('thermalState', '?')}\n"
+                f"Loaded models: {', '.join(health.get('loadedModels', [])) or 'none'}"
             )
             return (status,)
         except Exception as e:

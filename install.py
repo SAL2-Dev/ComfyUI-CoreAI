@@ -13,7 +13,6 @@ from __future__ import annotations
 import logging
 import os
 import platform
-import sys
 from pathlib import Path
 
 logger = logging.getLogger("ComfyUI-CoreAI")

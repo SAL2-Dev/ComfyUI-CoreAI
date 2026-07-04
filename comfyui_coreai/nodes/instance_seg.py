@@ -12,8 +12,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import numpy as np
-
 from .. import catalog
 from ..bridge import get_runner
 from ..image_utils import tensor_to_png, cleanup_temp
@@ -93,7 +91,7 @@ class CoreAIInstanceSegmentation:
             detections_json = json.dumps(detections, indent=2)
 
             timing = result.get("timing", {})
-            ms = timing.get("total_ms", 0)
+            ms = timing.get("totalMs", 0)
             logger.info("CoreAI InstanceSeg [%s]: %d instances in %.1fms", model, num, ms)
 
             return (annotated, detections_json)
