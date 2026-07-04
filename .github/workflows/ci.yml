@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['comfyui_coreai/**', 'install.py', 'pyproject.toml']
+  pull_request:
+    paths: ['comfyui_coreai/**', 'install.py', 'pyproject.toml']
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install httpx numpy pillow pytest ruff
+
+      - name: Lint (ruff)
+        run: ruff check comfyui_coreai/ install.py --ignore E402,W503
+
+      - name: Import smoke test
+        run: |
+          # Can't import torch (not installed), but can test catalog + bridge
+          python -c "
+          from comfyui_coreai.catalog import list_models, model_dropdown
+          from comfyui_coreai.image_utils import tensor_to_png, png_to_tensor
+          print('Catalog and image_utils imports OK')
+          "
+
+      - name: Install hook test
+        run: |
+          python -c "
+          from install import check_environment
+          ok, msg = check_environment()
+          print(f'Environment check: ok={ok}, msg={msg}')
+          "

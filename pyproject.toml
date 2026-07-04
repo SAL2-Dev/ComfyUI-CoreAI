@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "comfyui-coreai"
+version = "1.0.0-dev"
+description = "Apple Core AI models (Neural Engine) as ComfyUI vision nodes — depth, SAM, detection, VLM, image generation"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "Kevin Saltarelli" }]
+keywords = ["comfyui", "core-ai", "apple", "neural-engine", "aimodel", "vision", "depth", "sam", "detection", "vlm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "httpx>=0.27.0",
+    "numpy>=1.24.0",
+    "pillow>=10.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/kevinqz/ComfyUI-CoreAI"
+Repository = "https://github.com/kevinqz/ComfyUI-CoreAI"
+
+[tool.setuptools]
+packages = ["comfyui_coreai", "comfyui_coreai.nodes"]
