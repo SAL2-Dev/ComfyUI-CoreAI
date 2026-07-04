@@ -1,0 +1,28 @@
+# Build artifacts
+.build/
+.swiftpm/
+*.xcodeproj
+DerivedData/
+build/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+.venv/
+
+# Binary cache (downloaded at runtime)
+comfyui_coreai/bin/coreai-runner
+
+# ComfyUI workspace
+output/
+temp/
+
+# OS
+.DS_Store
+*.swp
+
+# IDE
+.vscode/
+.idea/
