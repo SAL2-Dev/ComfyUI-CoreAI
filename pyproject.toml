@@ -40,3 +40,8 @@ target-version = "py310"
 # E402: module-level imports not at top of file — intentional in ComfyUI nodes
 # (torch is a runtime-only dependency, imported lazily/guarded).
 ignore = ["E402"]
+
+[tool.pytest.ini_options]
+# Put the repo root on sys.path so `pytest tests/` (as CI invokes it, without
+# `python -m`) can import the `comfyui_coreai` package.
+pythonpath = ["."]
