@@ -25,6 +25,7 @@ from .nodes.image_gen import CoreAIImageGeneration
 from .nodes.embedding import CoreAIImageTextSimilarity
 from .nodes.instance_seg import CoreAIInstanceSegmentation
 from .nodes.loader import CoreAIModelLoader, CoreAIHealthCheck
+from .nodes.apple_text import CoreAIAppleText
 
 # --- ComfyUI node registration ---
 
@@ -39,6 +40,8 @@ NODE_CLASS_MAPPINGS = {
     "CoreAIImageTextSimilarity": CoreAIImageTextSimilarity,
     # Generation
     "CoreAIImageGeneration": CoreAIImageGeneration,
+    # Apple on-device (FoundationModels, macOS 26+ — no runner / macOS 27 needed)
+    "CoreAIAppleText": CoreAIAppleText,
     # Utils
     "CoreAIModelLoader": CoreAIModelLoader,
     "CoreAIHealthCheck": CoreAIHealthCheck,
@@ -52,6 +55,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "CoreAIInstanceSegmentation": "CoreAI Instance Segmentation",
     "CoreAIImageTextSimilarity": "CoreAI CLIP Similarity",
     "CoreAIImageGeneration": "CoreAI Image Generation (FLUX.2)",
+    "CoreAIAppleText": "CoreAI Apple Text (FoundationModels)",
     "CoreAIModelLoader": "CoreAI Model Loader",
     "CoreAIHealthCheck": "CoreAI Health Check",
 }

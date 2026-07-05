@@ -26,3 +26,7 @@ temp/
 # IDE
 .vscode/
 .idea/
+
+# FoundationModels backend — compiled binary (build with tools/build_fm.sh)
+tools/fm-generate
+*.o
