@@ -11,18 +11,18 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from .bridge import get_runner
-from . import catalog as catalog_client
-
 logger = logging.getLogger("ComfyUI-CoreAI")
 
 
-def register_routes(server) -> None:
+def register_routes() -> None:
     """Register /coreai/* API routes on the ComfyUI PromptServer."""
 
+    from server import PromptServer
     from aiohttp import web
+    from .bridge import get_runner
+    from . import catalog as catalog_client
 
-    @server.PromptServer.instance.routes.get("/coreai/health")
+    @PromptServer.instance.routes.get("/coreai/health")
     async def coreai_health(request):
         try:
             runner = get_runner()
@@ -34,7 +34,7 @@ def register_routes(server) -> None:
                 status=200,
             )
 
-    @server.PromptServer.instance.routes.get("/coreai/models")
+    @PromptServer.instance.routes.get("/coreai/models")
     async def coreai_models(request):
         capability = request.query.get("capability")
         try:
@@ -50,7 +50,7 @@ def register_routes(server) -> None:
                 "runner": "offline",
             })
 
-    @server.PromptServer.instance.routes.get("/coreai/models/{model_id}/status")
+    @PromptServer.instance.routes.get("/coreai/models/{model_id}/status")
     async def coreai_model_status(request):
         model_id = request.match_info["model_id"]
         try:
@@ -65,7 +65,7 @@ def register_routes(server) -> None:
                 "error": str(e),
             })
 
-    @server.PromptServer.instance.routes.post("/coreai/models/{model_id}/download")
+    @PromptServer.instance.routes.post("/coreai/models/{model_id}/download")
     async def coreai_model_download(request):
         model_id = request.match_info["model_id"]
         try:
@@ -78,7 +78,7 @@ def register_routes(server) -> None:
                 status=500,
             )
 
-    @server.PromptServer.instance.routes.get("/coreai/catalog/model/{model_id}")
+    @PromptServer.instance.routes.get("/coreai/catalog/model/{model_id}")
     async def coreai_catalog_model(request):
         model_id = request.match_info["model_id"]
         info = catalog_client.get_model(model_id)

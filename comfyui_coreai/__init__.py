@@ -69,7 +69,8 @@ WEB_DIRECTORY = "./web"
 # Register HTTP API routes on ComfyUI server startup
 try:
     from .api import register_routes
-    from server import PromptServer
-    register_routes(PromptServer)
+    register_routes()
 except ImportError:
     pass  # Running outside ComfyUI (e.g., in tests)
+except Exception:
+    pass  # PromptServer not yet initialized
