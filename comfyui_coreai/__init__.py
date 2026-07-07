@@ -19,15 +19,15 @@ import platform
 logging.getLogger("ComfyUI-CoreAI").setLevel(logging.INFO)
 logger = logging.getLogger("ComfyUI-CoreAI")
 
-from .nodes.depth import CoreAIDepthEstimation
-from .nodes.detection import CoreAIObjectDetection
-from .nodes.vlm import CoreAIVisionLanguage
-from .nodes.segmentation import CoreAISegmentation
-from .nodes.image_gen import CoreAIImageGeneration
-from .nodes.embedding import CoreAIImageTextSimilarity
-from .nodes.instance_seg import CoreAIInstanceSegmentation
-from .nodes.loader import CoreAIModelLoader, CoreAIHealthCheck
-from .nodes.apple_text import CoreAIAppleText
+from .nodes.depth import CoreAIDepthEstimation  # noqa: E402
+from .nodes.detection import CoreAIObjectDetection  # noqa: E402
+from .nodes.vlm import CoreAIVisionLanguage  # noqa: E402
+from .nodes.segmentation import CoreAISegmentation  # noqa: E402
+from .nodes.image_gen import CoreAIImageGeneration  # noqa: E402
+from .nodes.embedding import CoreAIImageTextSimilarity  # noqa: E402
+from .nodes.instance_seg import CoreAIInstanceSegmentation  # noqa: E402
+from .nodes.loader import CoreAIModelLoader, CoreAIHealthCheck  # noqa: E402
+from .nodes.apple_text import CoreAIAppleText  # noqa: E402
 
 # --- Capability detection --------------------------------------------------
 

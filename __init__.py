@@ -13,6 +13,6 @@ _this_dir = os.path.dirname(os.path.abspath(__file__))
 if _this_dir not in sys.path:
     sys.path.insert(0, _this_dir)
 
-from comfyui_coreai import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS, __version__
+from comfyui_coreai import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS, __version__  # noqa: E402
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "__version__"]

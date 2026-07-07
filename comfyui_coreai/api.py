@@ -9,7 +9,6 @@ The user never needs to know about the Unix socket.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
