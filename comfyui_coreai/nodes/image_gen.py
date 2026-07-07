@@ -77,7 +77,13 @@ class CoreAIImageGeneration:
             try:
                 result = runner.predict(model_id=model, prompt=prompt)
             except Exception as e:
-                if "not_installed" in str(e).lower() or "model_load_failed" in str(e).lower():
+                error_str = str(e).lower()
+                if "framework" in error_str or "absent in this sdk" in error_str:
+                    raise RuntimeError(
+                        f"'{model}' requires a framework not available in this macOS/SDK version. "
+                        f"This capability is supported on future macOS releases."
+                    )
+                if "not_installed" in error_str or "model_load_failed" in error_str:
                     raise RuntimeError(
                         f"Model '{model}' is not downloaded yet. "
                         f"Use the Download button on this node or the "

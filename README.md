@@ -48,13 +48,15 @@ inference — no manual setup required.
 
 ### Vision — Inference
 
-| Node | Model Family | Input | Output | Latency |
-|------|-------------|-------|--------|---------|
-| **CoreAI Depth Estimation** | Depth Anything 3 | IMAGE → depth map | IMAGE | ~15ms |
-| **CoreAI Object Detection** | RF-DETR, YOLOX | IMAGE → bboxes + annotated | IMAGE + JSON + INT | ~8.6ms |
-| **CoreAI Segmentation (SAM 3)** | SAM 3, EfficientSAM3 | IMAGE + text → masks | IMAGE + MASK + JSON | ~550ms |
-| **CoreAI Instance Segmentation** | RF-DETR-Seg | IMAGE → instances + masks | IMAGE + JSON | ~10ms |
-| **CoreAI Vision-Language (VLM)** | Qwen3-VL, MiniCPM-V | IMAGE + text → caption | STRING | ~191 tok/s |
+| Node | Model Family | Input | Output | Latency | SDK |
+|------|-------------|-------|--------|---------|-----|
+| **CoreAI Depth Estimation** | Depth Anything 3 | IMAGE → depth map | IMAGE | ~15ms | CoreAI ✅ |
+| **CoreAI Object Detection** | RF-DETR, YOLOX | IMAGE → bboxes + annotated | IMAGE + JSON + INT | ~8.6ms | CoreAI ✅ |
+| **CoreAI Instance Segmentation** | RF-DETR-Seg | IMAGE → instances + masks | IMAGE + JSON | ~10ms | CoreAI ✅ |
+| **CoreAI Vision-Language (VLM)** | Qwen3-VL, MiniCPM-V | IMAGE + text → caption | STRING | ~191 tok/s | CoreAI ✅ |
+| **CoreAI Segmentation (SAM 3)** | SAM 3, EfficientSAM3 | IMAGE + text → masks | IMAGE + MASK + JSON | ~550ms | ImageSegmenter* |
+
+*\* Requires CoreAIImageSegmenter framework, available in future macOS releases.*
 
 ### Analysis
 
@@ -66,7 +68,9 @@ inference — no manual setup required.
 
 | Node | Model Family | Input | Output | Latency |
 |------|-------------|-------|--------|---------|
-| **CoreAI Image Generation** | FLUX.2 klein 4B | TEXT → image | IMAGE | ~17.4s |
+| **CoreAI Image Generation** | FLUX.2 klein 4B | TEXT → image | IMAGE | ~17.4s | DiffusionPipeline* |
+
+*\* Requires CoreAIDiffusionPipeline framework, available in future macOS releases.*
 
 ### Apple On-Device (FoundationModels)
 
