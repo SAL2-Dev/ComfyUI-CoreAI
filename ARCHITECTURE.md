@@ -555,7 +555,7 @@ def _resolve_binary(self) -> Path:
         )
 
     version = self._get_runner_version()
-    url = f"https://github.com/kevinsaltarelli/ComfyUI-CoreAI/releases/download/{version}/coreai-runner-arm64-macos"
+    url = f"https://github.com/kevinqz/coreai-runner/releases/download/v1.0.0/coreai-runner"
 
     binary.parent.mkdir(parents=True, exist_ok=True)
     download_with_progress(url, binary)
@@ -577,9 +577,10 @@ ComfyUI-CoreAI/
 ├── requirements.txt             # httpx, pillow, numpy (minimal)
 │
 ├── comfyui_coreai/              # Python package (the node)
-│   ├── __init__.py              # ComfyUI node registration
+│   ├── __init__.py              # ComfyUI node registration + WEB_DIRECTORY + API routes
+│   ├── api.py                   # /coreai/* HTTP routes (proxy to runner)
 │   ├── bridge.py                # Subprocess lifecycle + HTTP client
-│   ├── catalog.py               # Catalog API client (cached)
+│   ├── catalog.py               # Catalog API client (cached, 5-min TTL)
 │   ├── image_utils.py           # ComfyUI tensor ↔ file conversion
 │   ├── nodes/
 │   │   ├── depth.py             # CoreAI Depth Estimation node
@@ -587,10 +588,17 @@ ComfyUI-CoreAI/
 │   │   ├── detection.py         # CoreAI Detect (RF-DETR/YOLOX) node
 │   │   ├── vlm.py               # CoreAI VLM node
 │   │   ├── image_gen.py         # CoreAI Image Generation node
-│   │   └── loader.py            # CoreAI Model Loader / downloader
+│   │   ├── instance_seg.py      # CoreAI Instance Segmentation node
+│   │   ├── embedding.py         # CoreAI CLIP Similarity node
+│   │   ├── apple_text.py        # CoreAI Apple Text (FoundationModels) node
+│   │   └── loader.py            # CoreAI Model Loader / Health Check
 │   ├── bin/                     # Downloaded Swift binary lives here
 │   │   └── .gitkeep
 │   └── install.py               # comfy-cli post-install hook
+│
+├── web/                         # ComfyUI web extension
+│   └── extensions/
+│       └── coreai_browser.js    # Status badge + download button on nodes
 │
 ├── coreai-runner/               # Swift binary source
 │   ├── Package.swift            # SPM manifest (links CoreAIKit)
@@ -951,3 +959,87 @@ supports split deployment (backbone→ANE, head→GPU).
 - [ ] LAN discovery (Bonjour/mDNS)
 - [ ] Model quantization selector (fp16/fp32/int8)
 - [ ] Workflow templates (depth → ControlNet, SAM → inpaint)
+
+---
+
+## Seamless Lifecycle
+
+The user never manages the runner manually. The entire lifecycle is transparent:
+
+### Install → Restart → Use
+
+```
+1. User installs via ComfyUI Manager (or git clone + pip install)
+2. Restart ComfyUI
+3. Nodes appear with live catalog dropdowns + status badges
+4. User clicks Download on a node → model downloads with progress bar
+5. User runs the workflow → inference happens on Neural Engine / GPU
+```
+
+### Subprocess lifecycle (automatic)
+
+```
+bridge.py:ensure_running()
+    │
+    ├── 1. Resolve binary:
+    │      a. COREAI_RUNNER_PATH env var (dev override)
+    │      b. Bundled: comfyui_coreai/bin/coreai-runner
+    │      c. GitHub Release download (auto)
+    │
+    ├── 2. Spawn subprocess:
+    │      coreai-runner --socket /tmp/coreai-runner.sock
+    │
+    ├── 3. Binary binds Unix socket, writes .ready file (with PID)
+    │
+    ├── 4. Bridge waits for .ready (15s timeout, PID-verified)
+    │
+    ├── 5. All subsequent predict() / load() / status() calls
+    │      reuse the running process over HTTP
+    │
+    └── 6. On ComfyUI shutdown: atexit → SIGTERM → socket cleanup
+```
+
+### Web extension UX
+
+The JavaScript extension (`web/extensions/coreai_browser.js`) adds to each node:
+
+- **Status badge** — reads `GET /coreai/models/:id/status` (proxied to runner)
+  Shows: "Not installed · 54.5MB" / "↓ 67%" / "✓ Ready"
+- **Download button** — triggers `POST /coreai/models/:id/download`
+  Polls status every 1s, updates badge in real-time
+- **Catalog metadata** — reads `GET /coreai/catalog/model/:id` for size/precision display
+
+### Python API routes (proxy layer)
+
+The `api.py` module registers `/coreai/*` routes on the ComfyUI PromptServer,
+so JavaScript can talk to the runner through ComfyUI's HTTP without knowing
+about the Unix socket:
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/coreai/health` | GET | Runner health (device, memory, thermal) |
+| `/coreai/models` | GET | Model list (falls back to catalog if runner offline) |
+| `/coreai/models/:id/status` | GET | Installed / loaded / download progress |
+| `/coreai/models/:id/download` | POST | Trigger download + load |
+| `/coreai/catalog/model/:id` | GET | Catalog metadata (size, precision, license) |
+
+### Runner endpoints (Swift side)
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/v1/health` | GET | Device info, loaded models, thermal state |
+| `/v1/models` | GET | Catalog models with `installed` / `loaded` status |
+| `/v1/models/:id/status` | GET | Per-model: installed, loaded, download progress |
+| `/v1/models/:id/load` | POST | Download + load model into memory |
+| `/v1/models/:id/unload` | POST | Release model from memory |
+| `/v1/predict` | POST | Run inference (auto-loads if needed) |
+
+### Model storage
+
+Downloaded `.aimodel` bundles are cached in:
+```
+~/Library/Application Support/CoreAIKit/Models/<org>/<repo>/<revision>/<variant>/
+```
+
+The `ModelStore` actor handles atomic download (staging dir → rename),
+concurrent download deduplication, and iCloud backup exclusion.
