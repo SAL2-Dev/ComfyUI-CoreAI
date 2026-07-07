@@ -74,11 +74,20 @@ class CoreAIImageTextSimilarity:
 
         try:
             runner = get_runner()
-            result = runner.predict(
-                model_id=model,
-                image_path=input_path,
-                prompt="|||".join(caption_list),
+            try:
+                result = runner.predict(
+                        model_id=model,
+                    image_path=input_path,
+                    prompt="|||".join(caption_list),
             )
+            except Exception as e:
+                if "not_installed" in str(e).lower() or "model_load_failed" in str(e).lower():
+                    raise RuntimeError(
+                        f"Model '{model}' is not downloaded yet. "
+                        f"Use the Download button on this node or the "
+                        f"CoreAI Model Loader to install it first."
+                    )
+                raise
 
             text_output = result["output"].get("text", "")
             if text_output:

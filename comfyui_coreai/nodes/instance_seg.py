@@ -75,11 +75,20 @@ class CoreAIInstanceSegmentation:
 
         try:
             runner = get_runner()
-            result = runner.predict(
-                model_id=model,
-                image_path=input_path,
-                score_threshold=score_threshold,
+            try:
+                result = runner.predict(
+                        model_id=model,
+                    image_path=input_path,
+                    score_threshold=score_threshold,
             )
+            except Exception as e:
+                if "not_installed" in str(e).lower() or "model_load_failed" in str(e).lower():
+                    raise RuntimeError(
+                        f"Model '{model}' is not downloaded yet. "
+                        f"Use the Download button on this node or the "
+                        f"CoreAI Model Loader to install it first."
+                    )
+                raise
 
             detections = result["output"].get("detections", [])
             num = len(detections)

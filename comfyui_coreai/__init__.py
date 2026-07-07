@@ -61,4 +61,15 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 }
 
 __version__ = "1.0.0-dev"
-__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
+__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
+
+# Web extension — adds status badge + download button to CoreAI nodes
+WEB_DIRECTORY = "./web"
+
+# Register HTTP API routes on ComfyUI server startup
+try:
+    from .api import register_routes
+    from server import PromptServer
+    register_routes(PromptServer)
+except ImportError:
+    pass  # Running outside ComfyUI (e.g., in tests)

@@ -109,13 +109,22 @@ class CoreAIVisionLanguage:
 
         try:
             runner = get_runner()
-            result = runner.predict(
-                model_id=model,
-                image_path=input_path,
-                prompt=prompt,
+            try:
+                result = runner.predict(
+                        model_id=model,
+                    image_path=input_path,
+                    prompt=prompt,
                 max_tokens=max_tokens,
                 temperature=temperature,
             )
+            except Exception as e:
+                if "not_installed" in str(e).lower() or "model_load_failed" in str(e).lower():
+                    raise RuntimeError(
+                        f"Model '{model}' is not downloaded yet. "
+                        f"Use the Download button on this node or the "
+                        f"CoreAI Model Loader to install it first."
+                    )
+                raise
 
             text = result["output"].get("text", "")
 

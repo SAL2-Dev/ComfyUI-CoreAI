@@ -74,7 +74,16 @@ class CoreAIImageGeneration:
     def generate(self, prompt: str, model: str, seed: int = 0):
         try:
             runner = get_runner()
-            result = runner.predict(model_id=model, prompt=prompt)
+            try:
+                result = runner.predict(model_id=model, prompt=prompt)
+            except Exception as e:
+                if "not_installed" in str(e).lower() or "model_load_failed" in str(e).lower():
+                    raise RuntimeError(
+                        f"Model '{model}' is not downloaded yet. "
+                        f"Use the Download button on this node or the "
+                        f"CoreAI Model Loader to install it first."
+                    )
+                raise
 
             output_path = result["output"].get("output_path")
             if not output_path:
