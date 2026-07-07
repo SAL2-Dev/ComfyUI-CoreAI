@@ -22,6 +22,8 @@ logger = logging.getLogger("ComfyUI-CoreAI")
 from .nodes.depth import CoreAIDepthEstimation
 from .nodes.detection import CoreAIObjectDetection
 from .nodes.vlm import CoreAIVisionLanguage
+from .nodes.segmentation import CoreAISegmentation
+from .nodes.image_gen import CoreAIImageGeneration
 from .nodes.embedding import CoreAIImageTextSimilarity
 from .nodes.instance_seg import CoreAIInstanceSegmentation
 from .nodes.loader import CoreAIModelLoader, CoreAIHealthCheck
@@ -42,6 +44,11 @@ _COREAI_AVAILABLE = _MACOS_MAJOR >= 27
 
 # Apple Text requires macOS 26+ (FoundationModels)
 _FOUNDATION_MODELS_AVAILABLE = _MACOS_MAJOR >= 26
+
+# SAM / FLUX.2 require CoreAIImageSegmenter / CoreAIDiffusionPipeline
+# (not yet in macOS 27 SDK — will auto-work when the frameworks ship)
+_SEGMENTATION_AVAILABLE = False
+_IMAGE_GEN_AVAILABLE = False
 
 # --- ComfyUI node registration ---
 
@@ -76,6 +83,15 @@ if _COREAI_AVAILABLE:
 
     NODE_CLASS_MAPPINGS["CoreAIHealthCheck"] = CoreAIHealthCheck
     NODE_DISPLAY_NAME_MAPPINGS["CoreAIHealthCheck"] = "Health Check"
+
+    # Registered but not yet runnable — keeps saved workflows valid
+    if not _SEGMENTATION_AVAILABLE:
+        NODE_CLASS_MAPPINGS["CoreAISegmentation"] = CoreAISegmentation
+        NODE_DISPLAY_NAME_MAPPINGS["CoreAISegmentation"] = "Segmentation (SAM) — coming soon"
+
+    if not _IMAGE_GEN_AVAILABLE:
+        NODE_CLASS_MAPPINGS["CoreAIImageGeneration"] = CoreAIImageGeneration
+        NODE_DISPLAY_NAME_MAPPINGS["CoreAIImageGeneration"] = "Image Generation (FLUX.2) — coming soon"
 else:
     logger.warning(
         "CoreAI vision nodes require macOS 27+. "
