@@ -68,6 +68,17 @@ class CoreAIRunner:
         if self._process and self._process.poll() is None:
             return  # already running
 
+        # Process died or never started — clean up stale client + socket
+        if self._client:
+            self._client.close()
+            self._client = None
+        self._process = None
+        for path in [SOCKET_PATH, SOCKET_PATH + ".ready"]:
+            try:
+                os.unlink(path)
+            except FileNotFoundError:
+                pass
+
         self._binary_path = _resolve_binary()
 
         logger.info("Starting coreai-runner subprocess...")
