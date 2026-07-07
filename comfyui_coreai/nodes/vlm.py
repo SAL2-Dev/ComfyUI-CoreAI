@@ -23,14 +23,18 @@ logger = logging.getLogger("ComfyUI-CoreAI")
 
 # Cache model list
 _VLM_MODELS: list[str] | None = None
+_MODELS_FETCHED_AT: float = 0
+_MODELS_TTL: float = 300  # 5-minute cache — catalog refresh interval
 
 
 def _get_vlm_models() -> list[str]:
-    global _VLM_MODELS
-    if _VLM_MODELS is None:
+    import time
+    global _VLM_MODELS, _MODELS_FETCHED_AT
+    if _VLM_MODELS is None or time.monotonic() - _MODELS_FETCHED_AT > _MODELS_TTL:
         _VLM_MODELS = catalog.model_dropdown(capability="vision-language")
         if not _VLM_MODELS:
             _VLM_MODELS = ["qwen3-vl-2b", "minicpm-v-4-6"]
+        _MODELS_FETCHED_AT = time.monotonic()
     return _VLM_MODELS
 
 

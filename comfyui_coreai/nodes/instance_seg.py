@@ -19,17 +19,18 @@ from ..image_utils import tensor_to_png, cleanup_temp
 logger = logging.getLogger("ComfyUI-CoreAI")
 
 _ISEG_MODELS: list[str] | None = None
+_MODELS_FETCHED_AT: float = 0
+_MODELS_TTL: float = 300  # 5-minute cache — catalog refresh interval
 
 
 def _get_iseg_models() -> list[str]:
-    global _ISEG_MODELS
-    if _ISEG_MODELS is None:
+    import time
+    global _ISEG_MODELS, _MODELS_FETCHED_AT
+    if _ISEG_MODELS is None or time.monotonic() - _MODELS_FETCHED_AT > _MODELS_TTL:
         _ISEG_MODELS = catalog.model_dropdown(capability="instance-segmentation")
         if not _ISEG_MODELS:
-            _ISEG_MODELS = [
-                "rf-detr-seg-nano", "rf-detr-seg-small", "rf-detr-seg-medium",
-                "rf-detr-seg-large", "rf-detr-seg-xlarge", "rf-detr-seg-2xlarge",
-            ]
+            _ISEG_MODELS = ["official-yolox-instance-seg"]
+        _MODELS_FETCHED_AT = time.monotonic()
     return _ISEG_MODELS
 
 

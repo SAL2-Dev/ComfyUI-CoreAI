@@ -23,14 +23,18 @@ from ..image_utils import tensor_to_png, load_output_image, cleanup_temp
 logger = logging.getLogger("ComfyUI-CoreAI")
 
 _SEG_MODELS: list[str] | None = None
+_MODELS_FETCHED_AT: float = 0
+_MODELS_TTL: float = 300  # 5-minute cache — catalog refresh interval
 
 
 def _get_seg_models() -> list[str]:
-    global _SEG_MODELS
-    if _SEG_MODELS is None:
+    import time
+    global _SEG_MODELS, _MODELS_FETCHED_AT
+    if _SEG_MODELS is None or time.monotonic() - _MODELS_FETCHED_AT > _MODELS_TTL:
         _SEG_MODELS = catalog.model_dropdown(capability="promptable-segmentation")
         if not _SEG_MODELS:
             _SEG_MODELS = ["official-sam-3", "efficientsam3-tinyvit"]
+        _MODELS_FETCHED_AT = time.monotonic()
     return _SEG_MODELS
 
 

@@ -19,14 +19,18 @@ from ..image_utils import load_output_image, cleanup_temp
 logger = logging.getLogger("ComfyUI-CoreAI")
 
 _GEN_MODELS: list[str] | None = None
+_MODELS_FETCHED_AT: float = 0
+_MODELS_TTL: float = 300  # 5-minute cache — catalog refresh interval
 
 
 def _get_gen_models() -> list[str]:
-    global _GEN_MODELS
-    if _GEN_MODELS is None:
+    import time
+    global _GEN_MODELS, _MODELS_FETCHED_AT
+    if _GEN_MODELS is None or time.monotonic() - _MODELS_FETCHED_AT > _MODELS_TTL:
         _GEN_MODELS = catalog.model_dropdown(capability="image-generation")
         if not _GEN_MODELS:
             _GEN_MODELS = ["official-flux-2-klein-4b", "z-image-turbo"]
+        _MODELS_FETCHED_AT = time.monotonic()
     return _GEN_MODELS
 
 

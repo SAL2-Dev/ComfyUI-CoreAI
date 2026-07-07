@@ -22,15 +22,18 @@ logger = logging.getLogger("ComfyUI-CoreAI")
 
 # Cache model list for dropdown — refreshed when the catalog cache expires
 _DEPTH_MODELS: list[str] | None = None
+_MODELS_FETCHED_AT: float = 0
+_MODELS_TTL: float = 300  # 5-minute cache — catalog refresh interval
 
 
 def _get_depth_models() -> list[str]:
-    global _DEPTH_MODELS
-    if _DEPTH_MODELS is None:
+    import time
+    global _DEPTH_MODELS, _MODELS_FETCHED_AT
+    if _DEPTH_MODELS is None or time.monotonic() - _MODELS_FETCHED_AT > _MODELS_TTL:
         _DEPTH_MODELS = catalog.model_dropdown(capability="monocular-depth")
         if not _DEPTH_MODELS:
-            # Fallback if catalog is unreachable
             _DEPTH_MODELS = ["depth-anything-3-small", "depth-anything-3-base"]
+        _MODELS_FETCHED_AT = time.monotonic()
     return _DEPTH_MODELS
 
 

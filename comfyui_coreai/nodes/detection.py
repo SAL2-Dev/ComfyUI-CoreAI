@@ -23,17 +23,18 @@ logger = logging.getLogger("ComfyUI-CoreAI")
 
 # Cache model list for dropdown
 _DETECT_MODELS: list[str] | None = None
+_MODELS_FETCHED_AT: float = 0
+_MODELS_TTL: float = 300  # 5-minute cache — catalog refresh interval
 
 
 def _get_detect_models() -> list[str]:
-    global _DETECT_MODELS
-    if _DETECT_MODELS is None:
+    import time
+    global _DETECT_MODELS, _MODELS_FETCHED_AT
+    if _DETECT_MODELS is None or time.monotonic() - _MODELS_FETCHED_AT > _MODELS_TTL:
         _DETECT_MODELS = catalog.model_dropdown(capability="object-detection")
         if not _DETECT_MODELS:
-            _DETECT_MODELS = [
-                "rf-detr-nano", "rf-detr-small", "rf-detr-medium", "rf-detr-large",
-                "yolox-s",
-            ]
+            _DETECT_MODELS = ["rf-detr-base", "yolox-small"]
+        _MODELS_FETCHED_AT = time.monotonic()
     return _DETECT_MODELS
 
 

@@ -204,6 +204,22 @@ class CoreAIRunner:
         resp.raise_for_status()
         return resp.json()
 
+    def model_status(self, model_id: str) -> dict[str, Any]:
+        """GET /v1/models/:id/status — installed, loaded, download progress."""
+        self.ensure_running()
+        assert self._client is not None
+        resp = self._client.get(f"/v1/models/{model_id}/status")
+        resp.raise_for_status()
+        return resp.json()
+
+    def download_model(self, model_id: str) -> dict[str, Any]:
+        """POST /v1/models/:id/load — trigger download without inference."""
+        self.ensure_running()
+        assert self._client is not None
+        resp = self._client.post(f"/v1/models/{model_id}/load")
+        resp.raise_for_status()
+        return resp.json()
+
     # --- Internal ----------------------------------------------------------
 
     def _wait_for_ready(self) -> bool:
