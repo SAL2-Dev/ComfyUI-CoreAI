@@ -22,3 +22,4 @@ comfyui_coreai/bin/
 .pytest_cache/
 htmlcov/
 .coverage
+uv.lock
