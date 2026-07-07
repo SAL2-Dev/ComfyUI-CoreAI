@@ -205,7 +205,13 @@ class CoreAIRunner:
 
     def _request(self, method: str, path: str, *, model_id: str | None = None, **kwargs) -> dict[str, Any]:
         """HTTP request with auto-retry: if the runner crashed mid-request
-        (RemoteProtocolError, ConnectError), respawn it and try once more."""
+        (RemoteProtocolError, ConnectError), respawn it and try once more.
+
+        SIGABRT (Core AI compiler crash) is detected via process exit code
+        and reported as a model-incompatibility error, not retried.
+        """
+        import httpx as _httpx
+
         for attempt in range(2):
             self.ensure_running()
             assert self._client is not None
@@ -213,17 +219,29 @@ class CoreAIRunner:
                 resp = self._client.request(method, path, **kwargs)
                 self._check_response(resp, model_id=model_id)
                 return resp.json()
-            except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError) as e:
+            except (_httpx.RemoteProtocolError, _httpx.ConnectError, _httpx.ReadError) as e:
                 if attempt == 0:
+                    # Check if runner died from SIGABRT (Core AI compiler crash)
+                    if self._process and self._process.poll() is not None:
+                        exit_code = self._process.returncode
+                        if exit_code == -6:  # SIGABRT
+                            # Clean up for next respawn
+                            if self._client:
+                                self._client.close()
+                                self._client = None
+                            self._process = None
+                            raise RuntimeError(
+                                f"Model '{model_id}' crashed the Core AI compiler "
+                                f"(SIGABRT). This model bundle is incompatible with the "
+                                f"current macOS/SDK version. Try a different model."
+                            ) from e
                     logger.warning("Runner disconnected (%s), respawning...", e)
-                    # Force respawn on next ensure_running()
                     if self._client:
                         self._client.close()
                         self._client = None
                     self._process = None
                     continue
                 raise RuntimeError(f"Runner crashed and could not restart: {e}") from e
-        # Unreachable — loop returns or raises
         raise RuntimeError("Request failed")
 
     @staticmethod
