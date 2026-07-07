@@ -140,20 +140,13 @@ class CoreAIRunner:
 
     def health(self) -> dict[str, Any]:
         """GET /v1/health — device info, loaded models."""
-        self.ensure_running()
-        assert self._client is not None
-        resp = self._client.get("/v1/health")
-        self._check_response(resp)
-        return resp.json()
+        return self._request("GET", "/v1/health")
 
     def list_models(self, capability: str | None = None) -> list[dict[str, Any]]:
         """GET /v1/models — models filtered by capability."""
-        self.ensure_running()
-        assert self._client is not None
         params = {"capability": capability} if capability else {}
-        resp = self._client.get("/v1/models", params=params)
-        self._check_response(resp)
-        return resp.json().get("models", [])
+        result = self._request("GET", "/v1/models", params=params)
+        return result.get("models", [])
 
     def predict(
         self,
@@ -168,15 +161,10 @@ class CoreAIRunner:
     ) -> dict[str, Any]:
         """POST /v1/predict — run inference and return result.
 
-        Wire keys inside ``input``/``options`` are snake_case — the SotA
-        convention for this API, matching coreai-catalog, ComfyUI, and the
-        HuggingFace/LLM ecosystem. The Swift runner maps these to its idiomatic
-        camelCase Swift properties via explicit snake_case CodingKeys (see
-        coreai-runner Codables.swift). Keep this in sync with that repo.
+        Auto-retries once if the runner crashed mid-request (respawns it).
+        Model downloads can take 15+ seconds; if the runner OOMs or hits
+        disk-full during download, the connection drops and we restart.
         """
-        self.ensure_running()
-        assert self._client is not None
-
         payload: dict[str, Any] = {
             "model_id": model_id,
             "input": {},
@@ -195,43 +183,48 @@ class CoreAIRunner:
         if text_prompt:
             payload["input"]["text_prompt"] = text_prompt
 
-        resp = self._client.post("/v1/predict", json=payload)
-        self._check_response(resp, model_id=model_id)
-        return resp.json()
+        return self._request("POST", "/v1/predict", json=payload, model_id=model_id)
 
     def load_model(self, model_id: str) -> dict[str, Any]:
         """POST /v1/models/:id/load — download + load model."""
-        self.ensure_running()
-        assert self._client is not None
-        resp = self._client.post(f"/v1/models/{model_id}/load")
-        self._check_response(resp, model_id=model_id)
-        return resp.json()
+        return self._request("POST", f"/v1/models/{model_id}/load", model_id=model_id)
 
     def unload_model(self, model_id: str) -> dict[str, Any]:
         """POST /v1/models/:id/unload — release model."""
-        self.ensure_running()
-        assert self._client is not None
-        resp = self._client.post(f"/v1/models/{model_id}/unload")
-        self._check_response(resp, model_id=model_id)
-        return resp.json()
+        return self._request("POST", f"/v1/models/{model_id}/unload", model_id=model_id)
 
     def model_status(self, model_id: str) -> dict[str, Any]:
         """GET /v1/models/:id/status — installed, loaded, download progress."""
-        self.ensure_running()
-        assert self._client is not None
-        resp = self._client.get(f"/v1/models/{model_id}/status")
-        self._check_response(resp, model_id=model_id)
-        return resp.json()
+        return self._request("GET", f"/v1/models/{model_id}/status", model_id=model_id)
 
     def download_model(self, model_id: str) -> dict[str, Any]:
         """POST /v1/models/:id/load — trigger download without inference."""
-        self.ensure_running()
-        assert self._client is not None
-        resp = self._client.post(f"/v1/models/{model_id}/load")
-        self._check_response(resp, model_id=model_id)
-        return resp.json()
+        return self._request("POST", f"/v1/models/{model_id}/load", model_id=model_id)
 
     # --- Internal ----------------------------------------------------------
+
+    def _request(self, method: str, path: str, *, model_id: str | None = None, **kwargs) -> dict[str, Any]:
+        """HTTP request with auto-retry: if the runner crashed mid-request
+        (RemoteProtocolError, ConnectError), respawn it and try once more."""
+        for attempt in range(2):
+            self.ensure_running()
+            assert self._client is not None
+            try:
+                resp = self._client.request(method, path, **kwargs)
+                self._check_response(resp, model_id=model_id)
+                return resp.json()
+            except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError) as e:
+                if attempt == 0:
+                    logger.warning("Runner disconnected (%s), respawning...", e)
+                    # Force respawn on next ensure_running()
+                    if self._client:
+                        self._client.close()
+                        self._client = None
+                    self._process = None
+                    continue
+                raise RuntimeError(f"Runner crashed and could not restart: {e}") from e
+        # Unreachable — loop returns or raises
+        raise RuntimeError("Request failed")
 
     @staticmethod
     def _check_response(resp, model_id: str | None = None) -> None:
