@@ -37,7 +37,7 @@ SHUTDOWN_TIMEOUT = 5.0
 REQUEST_TIMEOUT = 300.0  # 5 min — large models (FLUX.2) can take 20s+
 
 # GitHub Release binary URL (updated per release tag)
-RUNNER_REPO = "kevinqz/coreai-runner"
+RUNNER_REPO = "kevinqz/coreai-runner"  # will move to SAL2-Dev after runner migration
 RUNNER_VERSION = "1.0.0"  # matches GitHub Release tag
 
 

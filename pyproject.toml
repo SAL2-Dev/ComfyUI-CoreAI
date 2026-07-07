@@ -7,8 +7,12 @@ name = "comfyui-coreai"
 version = "1.0.0-dev"
 description = "Apple Core AI models (Neural Engine) as ComfyUI vision nodes"
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
+authors = [
+    { name = "SAL2 Dev", email = "contato@sal2.com.br" },
+]
 dependencies = [
     "httpx>=0.27.0",
     "numpy>=1.24.0",
@@ -16,7 +20,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/kevinqz/ComfyUI-CoreAI"
+Homepage = "https://github.com/SAL2-Dev/ComfyUI-CoreAI"
+Documentation = "https://github.com/SAL2-Dev/ComfyUI-CoreAI#readme"
+Repository = "https://github.com/SAL2-Dev/ComfyUI-CoreAI"
+Issues = "https://github.com/SAL2-Dev/ComfyUI-CoreAI/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["comfyui_coreai"]

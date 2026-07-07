@@ -18,7 +18,7 @@ with a visible progress bar and a one-click Download button on each node.
 
 ### Via ComfyUI Manager (recommended)
 
-1. Open ComfyUI &rarr; Manager &rarr; Install Custom Nodes
+1. Open ComfyUI → Manager → Install Custom Nodes
 2. Search for "CoreAI"
 3. Click Install
 4. Restart ComfyUI
@@ -29,7 +29,7 @@ The runner binary downloads automatically on first use.
 
 ```bash
 cd <comfyui>/custom_nodes
-git clone https://github.com/kevinqz/ComfyUI-CoreAI.git
+git clone https://github.com/SAL2-Dev/ComfyUI-CoreAI.git
 cd ComfyUI-CoreAI
 pip install -e .
 ```
@@ -50,29 +50,29 @@ inference — no manual setup required.
 
 | Node | Model Family | Input | Output | Latency |
 |------|-------------|-------|--------|---------|
-| **CoreAI Depth Estimation** | Depth Anything 3 | IMAGE &rarr; depth map | IMAGE | ~15ms |
-| **CoreAI Object Detection** | RF-DETR, YOLOX | IMAGE &rarr; bboxes + annotated | IMAGE + JSON + INT | ~8.6ms |
-| **CoreAI Segmentation (SAM 3)** | SAM 3, EfficientSAM3 | IMAGE + text &rarr; masks | IMAGE + MASK + JSON | ~550ms |
-| **CoreAI Instance Segmentation** | RF-DETR-Seg | IMAGE &rarr; instances + masks | IMAGE + JSON | ~10ms |
-| **CoreAI Vision-Language (VLM)** | Qwen3-VL, MiniCPM-V | IMAGE + text &rarr; caption | STRING | ~191 tok/s |
+| **CoreAI Depth Estimation** | Depth Anything 3 | IMAGE → depth map | IMAGE | ~15ms |
+| **CoreAI Object Detection** | RF-DETR, YOLOX | IMAGE → bboxes + annotated | IMAGE + JSON + INT | ~8.6ms |
+| **CoreAI Segmentation (SAM 3)** | SAM 3, EfficientSAM3 | IMAGE + text → masks | IMAGE + MASK + JSON | ~550ms |
+| **CoreAI Instance Segmentation** | RF-DETR-Seg | IMAGE → instances + masks | IMAGE + JSON | ~10ms |
+| **CoreAI Vision-Language (VLM)** | Qwen3-VL, MiniCPM-V | IMAGE + text → caption | STRING | ~191 tok/s |
 
 ### Analysis
 
 | Node | Model Family | Input | Output |
 |------|-------------|-------|--------|
-| **CoreAI CLIP Similarity** | CLIP ViT-B/32 | IMAGE + captions &rarr; scores | STRING |
+| **CoreAI CLIP Similarity** | CLIP ViT-B/32 | IMAGE + captions → scores | STRING |
 
 ### Generation
 
 | Node | Model Family | Input | Output | Latency |
 |------|-------------|-------|--------|---------|
-| **CoreAI Image Generation** | FLUX.2 klein 4B | TEXT &rarr; image | IMAGE | ~17.4s |
+| **CoreAI Image Generation** | FLUX.2 klein 4B | TEXT → image | IMAGE | ~17.4s |
 
 ### Apple On-Device (FoundationModels)
 
 | Node | Model Family | Input | Output | Notes |
 |------|-------------|-------|--------|-------|
-| **CoreAI Apple Text** | Apple Intelligence | TEXT &rarr; text | STRING | No runner needed — uses FoundationModels directly (macOS 26+) |
+| **CoreAI Apple Text** | Apple Intelligence | TEXT → text | STRING | No runner needed — uses FoundationModels directly (macOS 26+) |
 
 ### Utils
 
@@ -97,6 +97,29 @@ Everything else is automatic.
 - macOS 27.0+ for vision nodes (Core AI framework)
 - macOS 26.0+ for Apple Text node (FoundationModels)
 - ComfyUI running locally
+
+## About the models
+
+The Core AI models used by this plugin are developed, converted, and licensed by
+their respective creators. This package is an **integration layer** — it connects
+ComfyUI to Apple's on-device inference frameworks (Core AI, FoundationModels).
+SAL2 Dev does not own or distribute the models themselves. For model-specific
+questions (accuracy, licensing, commercial use), consult the
+[Core AI catalog](https://github.com/kevinqz/coreai-catalog), which lists every
+model with its source, license, and provenance.
+
+## Credits
+
+**Developed by [SAL2 Dev](https://www.sal2.com.br)** — integration layer,
+ComfyUI nodes, Swift runner, and web extension.
+
+This project builds on:
+- [Apple Core AI](https://developer.apple.com/machine-learning/) — inference frameworks
+- [Core AI model catalog](https://github.com/kevinqz/coreai-catalog) — model discovery
+- [CoreAIKit](https://github.com/john-rocky/coreai-kit) — Swift SPM runtime
+- [Core AI Model Zoo](https://github.com/john-rocky/coreai-model-zoo) — model conversion
+
+All trademarks belong to their respective owners.
 
 ## Documentation
 
