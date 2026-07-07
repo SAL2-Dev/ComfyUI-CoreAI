@@ -38,7 +38,7 @@ REQUEST_TIMEOUT = 300.0  # 5 min — large models (FLUX.2) can take 20s+
 
 # GitHub Release binary URL (updated per release tag)
 RUNNER_REPO = "kevinqz/coreai-runner"
-RUNNER_VERSION = "1.0.0-dev"  # updated on release
+RUNNER_VERSION = "1.0.0"  # matches GitHub Release tag
 
 
 class CoreAIRunner:
