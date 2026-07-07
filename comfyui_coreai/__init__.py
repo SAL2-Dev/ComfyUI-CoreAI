@@ -4,61 +4,84 @@ ComfyUI-CoreAI — Apple Core AI models (Neural Engine) as ComfyUI vision nodes.
 This __init__.py registers the node classes so ComfyUI discovers them
 automatically when the package is in the custom_nodes directory.
 
-Nodes:
-    CoreAIDepthEstimation  — monocular depth (Depth Anything 3) → ControlNet
-    CoreAIObjectDetection  — object detection (RF-DETR, YOLOX) → bboxes
-    CoreAIVisionLanguage   — VLM (Qwen3-VL) → image captioning / Q&A
+Only nodes whose required system frameworks are available in the current
+macOS/SDK are registered. Segmentation (SAM) and Image Generation (FLUX.2)
+require CoreAIImageSegmenter / CoreAIDiffusionPipeline, which ship in future
+macOS releases. They will be auto-enabled when the frameworks become available.
 """
 
 from __future__ import annotations
 
 import logging
+import platform
 
 # Set up logging — visible in ComfyUI console
 logging.getLogger("ComfyUI-CoreAI").setLevel(logging.INFO)
+logger = logging.getLogger("ComfyUI-CoreAI")
 
 from .nodes.depth import CoreAIDepthEstimation
 from .nodes.detection import CoreAIObjectDetection
 from .nodes.vlm import CoreAIVisionLanguage
-from .nodes.segmentation import CoreAISegmentation
-from .nodes.image_gen import CoreAIImageGeneration
 from .nodes.embedding import CoreAIImageTextSimilarity
 from .nodes.instance_seg import CoreAIInstanceSegmentation
 from .nodes.loader import CoreAIModelLoader, CoreAIHealthCheck
 from .nodes.apple_text import CoreAIAppleText
 
+# --- Capability detection --------------------------------------------------
+
+def _macos_major() -> int:
+    try:
+        return int(platform.mac_ver()[0].split(".")[0])
+    except Exception:
+        return 0
+
+_MACOS_MAJOR = _macos_major()
+
+# Core AI vision nodes require macOS 27+ (Core AI framework)
+_COREAI_AVAILABLE = _MACOS_MAJOR >= 27
+
+# Apple Text requires macOS 26+ (FoundationModels)
+_FOUNDATION_MODELS_AVAILABLE = _MACOS_MAJOR >= 26
+
 # --- ComfyUI node registration ---
 
-NODE_CLASS_MAPPINGS = {
-    # Vision — inference
-    "CoreAIDepthEstimation": CoreAIDepthEstimation,
-    "CoreAIObjectDetection": CoreAIObjectDetection,
-    "CoreAIVisionLanguage": CoreAIVisionLanguage,
-    "CoreAISegmentation": CoreAISegmentation,
-    "CoreAIInstanceSegmentation": CoreAIInstanceSegmentation,
-    # Analysis
-    "CoreAIImageTextSimilarity": CoreAIImageTextSimilarity,
-    # Generation
-    "CoreAIImageGeneration": CoreAIImageGeneration,
-    # Apple on-device (FoundationModels, macOS 26+ — no runner / macOS 27 needed)
-    "CoreAIAppleText": CoreAIAppleText,
-    # Utils
-    "CoreAIModelLoader": CoreAIModelLoader,
-    "CoreAIHealthCheck": CoreAIHealthCheck,
-}
+NODE_CLASS_MAPPINGS: dict[str, type] = {}
+NODE_DISPLAY_NAME_MAPPINGS: dict[str, str] = {}
 
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "CoreAIDepthEstimation": "CoreAI Depth Estimation",
-    "CoreAIObjectDetection": "CoreAI Object Detection",
-    "CoreAIVisionLanguage": "CoreAI Vision-Language (VLM)",
-    "CoreAISegmentation": "CoreAI Segmentation (SAM 3)",
-    "CoreAIInstanceSegmentation": "CoreAI Instance Segmentation",
-    "CoreAIImageTextSimilarity": "CoreAI CLIP Similarity",
-    "CoreAIImageGeneration": "CoreAI Image Generation (FLUX.2)",
-    "CoreAIAppleText": "CoreAI Apple Text (FoundationModels)",
-    "CoreAIModelLoader": "CoreAI Model Loader",
-    "CoreAIHealthCheck": "CoreAI Health Check",
-}
+if _FOUNDATION_MODELS_AVAILABLE:
+    NODE_CLASS_MAPPINGS["CoreAIAppleText"] = CoreAIAppleText
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIAppleText"] = "🍎 Apple Text (On-Device LLM)"
+
+if _COREAI_AVAILABLE:
+    # Vision — inference (Core AI / Neural Engine)
+    NODE_CLASS_MAPPINGS["CoreAIDepthEstimation"] = CoreAIDepthEstimation
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIDepthEstimation"] = "Depth Estimation"
+
+    NODE_CLASS_MAPPINGS["CoreAIObjectDetection"] = CoreAIObjectDetection
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIObjectDetection"] = "Object Detection"
+
+    NODE_CLASS_MAPPINGS["CoreAIInstanceSegmentation"] = CoreAIInstanceSegmentation
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIInstanceSegmentation"] = "Instance Segmentation"
+
+    NODE_CLASS_MAPPINGS["CoreAIVisionLanguage"] = CoreAIVisionLanguage
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIVisionLanguage"] = "Vision-Language (VLM)"
+
+    # Analysis
+    NODE_CLASS_MAPPINGS["CoreAIImageTextSimilarity"] = CoreAIImageTextSimilarity
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIImageTextSimilarity"] = "CLIP Similarity"
+
+    # Utils
+    NODE_CLASS_MAPPINGS["CoreAIModelLoader"] = CoreAIModelLoader
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIModelLoader"] = "Model Loader"
+
+    NODE_CLASS_MAPPINGS["CoreAIHealthCheck"] = CoreAIHealthCheck
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIHealthCheck"] = "Health Check"
+else:
+    logger.warning(
+        "CoreAI vision nodes require macOS 27+. "
+        "Only Apple Text is available on macOS %s.",
+        platform.mac_ver()[0],
+    )
 
 __version__ = "1.0.0-dev"
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

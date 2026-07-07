@@ -56,7 +56,7 @@ class CoreAIModelLoader:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("model_id",)
     FUNCTION = "load_model"
-    CATEGORY = "CoreAI/Utils"
+    CATEGORY = "SAL2/Utils"
 
     def load_model(self, model: str, auto_download: bool = True):
         """Return the model ID, optionally pre-downloading."""
@@ -88,7 +88,7 @@ class CoreAIHealthCheck:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("status",)
     FUNCTION = "check_health"
-    CATEGORY = "CoreAI/Utils"
+    CATEGORY = "SAL2/Utils"
 
     def check_health(self):
         """Check runner health and return formatted status."""

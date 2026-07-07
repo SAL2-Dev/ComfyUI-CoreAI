@@ -72,7 +72,7 @@ class CoreAIDepthEstimation:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("depth_map",)
     FUNCTION = "estimate_depth"
-    CATEGORY = "CoreAI/Vision"
+    CATEGORY = "SAL2/Vision"
 
     def estimate_depth(self, image, model: str, compute_unit: str = "auto"):
         """Run depth estimation and return the depth map as a ComfyUI tensor."""

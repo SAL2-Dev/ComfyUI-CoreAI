@@ -4,7 +4,7 @@
 
    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-   Copyright 2026 SAL2 Dev (www.sal2.com.br)
+   Copyright 2026 SAL2 (www.sal2.com.br)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,6 +23,6 @@
    ComfyUI-CoreAI integrates with Apple Core AI models and the Core AI
    model catalog. The models themselves are developed and licensed by
    their respective creators (see each model's license in the catalog).
-   SAL2 Dev does not own or distribute the models — this software is
+   SAL2 does not own or distribute the models — this software is
    an integration layer that connects ComfyUI to Apple's on-device
    inference frameworks.

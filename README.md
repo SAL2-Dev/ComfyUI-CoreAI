@@ -107,14 +107,14 @@ Everything else is automatic.
 The Core AI models used by this plugin are developed, converted, and licensed by
 their respective creators. This package is an **integration layer** — it connects
 ComfyUI to Apple's on-device inference frameworks (Core AI, FoundationModels).
-SAL2 Dev does not own or distribute the models themselves. For model-specific
+SAL2 does not own or distribute the models themselves. For model-specific
 questions (accuracy, licensing, commercial use), consult the
 [Core AI catalog](https://github.com/kevinqz/coreai-catalog), which lists every
 model with its source, license, and provenance.
 
 ## Credits
 
-**Developed by [SAL2 Dev](https://www.sal2.com.br)** — integration layer,
+**Developed by [SAL2](https://www.sal2.com.br)** — integration layer,
 ComfyUI nodes, Swift runner, and web extension.
 
 This project builds on:

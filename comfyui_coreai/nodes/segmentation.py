@@ -108,7 +108,7 @@ class CoreAISegmentation:
     RETURN_TYPES = ("IMAGE", "MASK", "STRING")
     RETURN_NAMES = ("mask_overlay", "composite_mask", "segment_info")
     FUNCTION = "segment"
-    CATEGORY = "CoreAI/Vision"
+    CATEGORY = "SAL2/Vision"
 
     def segment(self, image, model: str, text_prompt: str, score_threshold: float = 0.5):
         input_path = tensor_to_png(image)

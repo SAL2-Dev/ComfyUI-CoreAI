@@ -94,7 +94,7 @@ class CoreAIVisionLanguage:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("text",)
     FUNCTION = "run_vlm"
-    CATEGORY = "CoreAI/Vision"
+    CATEGORY = "SAL2/Vision"
 
     def run_vlm(
         self,
