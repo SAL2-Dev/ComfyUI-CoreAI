@@ -62,7 +62,7 @@ class CoreAIInstanceSegmentation:
     RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("annotated_image", "detections_json")
     FUNCTION = "segment_instances"
-    CATEGORY = "SAL2/Vision"
+    CATEGORY = "CoreAI/Vision"
 
     def segment_instances(
         self,

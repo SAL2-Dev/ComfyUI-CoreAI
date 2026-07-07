@@ -61,7 +61,7 @@ class CoreAIAppleText:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("text",)
     FUNCTION = "generate"
-    CATEGORY = "SAL2/Apple Intelligence"
+    CATEGORY = "CoreAI/On-Device"
 
     def generate(self, prompt: str):
         binary = _fm_binary()

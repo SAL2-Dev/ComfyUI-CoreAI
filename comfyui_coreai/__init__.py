@@ -50,7 +50,7 @@ NODE_DISPLAY_NAME_MAPPINGS: dict[str, str] = {}
 
 if _FOUNDATION_MODELS_AVAILABLE:
     NODE_CLASS_MAPPINGS["CoreAIAppleText"] = CoreAIAppleText
-    NODE_DISPLAY_NAME_MAPPINGS["CoreAIAppleText"] = "🍎 Apple Text (On-Device LLM)"
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIAppleText"] = "Apple Text (On-Device)"
 
 if _COREAI_AVAILABLE:
     # Vision — inference (Core AI / Neural Engine)

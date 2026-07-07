@@ -66,7 +66,7 @@ class CoreAIImageTextSimilarity:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("scores",)
     FUNCTION = "compute_similarity"
-    CATEGORY = "SAL2/Analysis"
+    CATEGORY = "CoreAI/Analysis"
 
     def compute_similarity(self, image, captions: str, model: str):
         input_path = tensor_to_png(image)

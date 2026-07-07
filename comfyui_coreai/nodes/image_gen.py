@@ -69,7 +69,7 @@ class CoreAIImageGeneration:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
     FUNCTION = "generate"
-    CATEGORY = "SAL2/Generation"
+    CATEGORY = "CoreAI/Generation"
 
     def generate(self, prompt: str, model: str, seed: int = 0):
         try:

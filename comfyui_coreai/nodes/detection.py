@@ -138,7 +138,7 @@ class CoreAIObjectDetection:
     RETURN_TYPES = ("IMAGE", "STRING", "INT")
     RETURN_NAMES = ("annotated_image", "detections_json", "num_detections")
     FUNCTION = "detect_objects"
-    CATEGORY = "SAL2/Vision"
+    CATEGORY = "CoreAI/Vision"
 
     def detect_objects(
         self,
