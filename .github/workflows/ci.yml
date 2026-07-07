@@ -3,9 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
-    paths: ['comfyui_coreai/**', 'install.py', 'pyproject.toml', 'tools/**', 'tests/**']
   pull_request:
-    paths: ['comfyui_coreai/**', 'install.py', 'pyproject.toml', 'tools/**', 'tests/**']
 
 jobs:
   lint-and-test:
