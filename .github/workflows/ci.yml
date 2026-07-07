@@ -20,7 +20,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install httpx numpy pillow pytest ruff
+        run: |
+          pip install httpx numpy pillow pytest ruff
+          pip install -e .
 
       - name: Lint (ruff)
         run: ruff check .
