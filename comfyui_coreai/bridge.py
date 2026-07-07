@@ -132,7 +132,7 @@ class CoreAIRunner:
         self.ensure_running()
         assert self._client is not None
         resp = self._client.get("/v1/health")
-        resp.raise_for_status()
+        self._check_response(resp)
         return resp.json()
 
     def list_models(self, capability: str | None = None) -> list[dict[str, Any]]:
@@ -141,7 +141,7 @@ class CoreAIRunner:
         assert self._client is not None
         params = {"capability": capability} if capability else {}
         resp = self._client.get("/v1/models", params=params)
-        resp.raise_for_status()
+        self._check_response(resp)
         return resp.json().get("models", [])
 
     def predict(
@@ -185,7 +185,7 @@ class CoreAIRunner:
             payload["input"]["text_prompt"] = text_prompt
 
         resp = self._client.post("/v1/predict", json=payload)
-        resp.raise_for_status()
+        self._check_response(resp, model_id=model_id)
         return resp.json()
 
     def load_model(self, model_id: str) -> dict[str, Any]:
@@ -193,7 +193,7 @@ class CoreAIRunner:
         self.ensure_running()
         assert self._client is not None
         resp = self._client.post(f"/v1/models/{model_id}/load")
-        resp.raise_for_status()
+        self._check_response(resp, model_id=model_id)
         return resp.json()
 
     def unload_model(self, model_id: str) -> dict[str, Any]:
@@ -201,7 +201,7 @@ class CoreAIRunner:
         self.ensure_running()
         assert self._client is not None
         resp = self._client.post(f"/v1/models/{model_id}/unload")
-        resp.raise_for_status()
+        self._check_response(resp, model_id=model_id)
         return resp.json()
 
     def model_status(self, model_id: str) -> dict[str, Any]:
@@ -209,7 +209,7 @@ class CoreAIRunner:
         self.ensure_running()
         assert self._client is not None
         resp = self._client.get(f"/v1/models/{model_id}/status")
-        resp.raise_for_status()
+        self._check_response(resp, model_id=model_id)
         return resp.json()
 
     def download_model(self, model_id: str) -> dict[str, Any]:
@@ -217,10 +217,28 @@ class CoreAIRunner:
         self.ensure_running()
         assert self._client is not None
         resp = self._client.post(f"/v1/models/{model_id}/load")
-        resp.raise_for_status()
+        self._check_response(resp, model_id=model_id)
         return resp.json()
 
     # --- Internal ----------------------------------------------------------
+
+    @staticmethod
+    def _check_response(resp, model_id: str | None = None) -> None:
+        """Raise with the runner's error message instead of generic HTTP status."""
+        if resp.is_success:
+            return
+        try:
+            body = resp.json()
+            err = body.get("error", body)
+            code = err.get("code", "UNKNOWN")
+            msg = err.get("message", resp.text[:200])
+            mid = err.get("model_id", model_id)
+            detail = f"[{code}] {msg}"
+            if mid:
+                detail = f"Model '{mid}': {detail}"
+            raise RuntimeError(detail)
+        except (ValueError, KeyError):
+            resp.raise_for_status()
 
     def _wait_for_ready(self) -> bool:
         """Wait for the .ready file to appear (socket is listening).
