@@ -15,6 +15,7 @@ from typing import Any
 
 from .. import catalog
 from ..bridge import get_runner
+from ..perf import format_chat_perf, with_perf
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
@@ -169,7 +170,7 @@ class CoreAIChat:
                 usage.get("total_tokens", "?"),
             )
 
-            return (text,)
+            return with_perf((text,), format_chat_perf(result))
 
         except Exception as e:
             error_str = str(e).lower()

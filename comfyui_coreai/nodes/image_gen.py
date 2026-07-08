@@ -15,6 +15,7 @@ from typing import Any
 from .. import catalog
 from ..bridge import get_runner
 from ..image_utils import load_output_image, cleanup_temp
+from ..perf import format_vision_perf, with_perf
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
@@ -102,7 +103,7 @@ class CoreAIImageGeneration:
             ms = timing.get("total_ms", 0)
             logger.info("CoreAI ImageGen [%s]: %.1fms (%.1fs)", model, ms, ms / 1000)
 
-            return (image_tensor,)
+            return with_perf((image_tensor,), format_vision_perf(timing))
         except Exception as e:
             logger.error("Image generation failed: %s", e)
             raise

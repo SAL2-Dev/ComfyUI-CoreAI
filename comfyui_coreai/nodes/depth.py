@@ -17,6 +17,7 @@ from typing import Any
 from .. import catalog
 from ..bridge import get_runner
 from ..image_utils import tensor_to_png, load_output_image, cleanup_temp
+from ..perf import format_vision_perf, with_perf
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
@@ -127,7 +128,7 @@ class CoreAIDepthEstimation:
             # Cleanup output file
             cleanup_temp(output_path)
 
-            return (depth_tensor,)
+            return with_perf((depth_tensor,), format_vision_perf(timing))
 
         finally:
             cleanup_temp(input_path)

@@ -15,6 +15,7 @@ from typing import Any
 from .. import catalog
 from ..bridge import get_runner
 from ..image_utils import tensor_to_png, cleanup_temp
+from ..perf import format_vision_perf, with_perf
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
@@ -110,6 +111,9 @@ class CoreAIInstanceSegmentation:
             ms = timing.get("total_ms", 0)
             logger.info("CoreAI InstanceSeg [%s]: %d instances in %.1fms", model, num, ms)
 
-            return (annotated, detections_json)
+            return with_perf(
+                (annotated, detections_json),
+                format_vision_perf(timing),
+            )
         finally:
             cleanup_temp(input_path)

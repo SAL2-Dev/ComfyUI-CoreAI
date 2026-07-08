@@ -18,6 +18,7 @@ from typing import Any
 from .. import catalog
 from ..bridge import get_runner
 from ..image_utils import tensor_to_png, cleanup_temp
+from ..perf import format_chat_perf, with_perf
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
@@ -142,7 +143,7 @@ class CoreAIVisionLanguage:
                 model, tokens, ms, (tokens / ms * 1000) if ms > 0 else 0,
             )
 
-            return (text,)
+            return with_perf((text,), format_chat_perf(result))
 
         finally:
             cleanup_temp(input_path)

@@ -15,6 +15,7 @@ from typing import Any
 from .. import catalog
 from ..bridge import get_runner
 from ..image_utils import tensor_to_png, cleanup_temp
+from ..perf import format_vision_perf, with_perf
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
@@ -95,6 +96,9 @@ class CoreAIImageTextSimilarity:
                     )
                 raise
 
+            timing = result.get("timing", {})
+            perf = format_vision_perf(timing)
+
             text_output = result["output"].get("text", "")
             if text_output:
                 try:
@@ -102,10 +106,10 @@ class CoreAIImageTextSimilarity:
                     scores = json.loads(text_output)
                     if isinstance(scores, list):
                         lines = [f"{s:.4f}  {c}" for s, c in zip(scores, caption_list)]
-                        return ("\n".join(lines),)
+                        return with_perf(("\n".join(lines),), perf)
                 except (json.JSONDecodeError, TypeError):
                     pass
 
-            return (text_output or "No scores returned",)
+            return with_perf((text_output or "No scores returned",), perf)
         finally:
             cleanup_temp(input_path)

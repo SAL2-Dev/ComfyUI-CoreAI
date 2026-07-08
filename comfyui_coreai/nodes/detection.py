@@ -18,6 +18,7 @@ import numpy as np
 from .. import catalog
 from ..bridge import get_runner
 from ..image_utils import tensor_to_png, cleanup_temp
+from ..perf import format_vision_perf, with_perf
 
 logger = logging.getLogger("ComfyUI-CoreAI")
 
@@ -191,7 +192,10 @@ class CoreAIObjectDetection:
                 model, num, ms,
             )
 
-            return (annotated, detections_json, num)
+            return with_perf(
+                (annotated, detections_json, num),
+                format_vision_perf(timing),
+            )
 
         finally:
             cleanup_temp(input_path)

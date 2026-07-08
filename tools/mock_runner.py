@@ -229,6 +229,13 @@ def build_chat_response(body: dict) -> dict:
             break
     prompt_preview = user_msg[:80] if user_msg else "(empty)"
     content = f"[mock LLM] Response to: {prompt_preview!r}"
+    prompt_tokens = len(user_msg.split())
+    completion_tokens = len(content.split())
+    # Deterministic inference timing so tests can assert tok/s. Pick a value
+    # that yields a clean rate: 8 tokens in 40ms = 200 tok/s.
+    inference_ms = 40.0
+    total_ms = 42.5
+    tps = round(completion_tokens / (inference_ms / 1000.0), 1)
     return {
         "id": f"chatcmn-mock{uuid.uuid4().hex[:6]}",
         "object": "chat.completion",
@@ -241,9 +248,22 @@ def build_chat_response(body: dict) -> dict:
             }
         ],
         "usage": {
-            "prompt_tokens": len(user_msg.split()),
-            "completion_tokens": len(content.split()),
-            "total_tokens": len(user_msg.split()) + len(content.split()),
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": prompt_tokens + completion_tokens,
+        },
+        "timing": {
+            "load_ms": 1.0,
+            "preprocess_ms": 0.5,
+            "inference_ms": inference_ms,
+            "postprocess_ms": 1.0,
+            "total_ms": total_ms,
+            "compute_unit_used": "GPU",
+        },
+        # Streaming stats (mirrors the real runner's /v1/chat/stream envelope).
+        "streaming_stats": {
+            "tokens_per_second": tps,
+            "reused_prompt_tokens": 0,
         },
     }
 
