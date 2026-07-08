@@ -218,6 +218,36 @@ def build_models_response() -> dict:
     ]}
 
 
+def build_chat_response(body: dict) -> dict:
+    """Build an OpenAI-compatible chat completion response (mock)."""
+    model_id = body.get("model", "")
+    messages = body.get("messages", [])
+    user_msg = ""
+    for msg in reversed(messages):
+        if msg.get("role") == "user":
+            user_msg = msg.get("content", "")
+            break
+    prompt_preview = user_msg[:80] if user_msg else "(empty)"
+    content = f"[mock LLM] Response to: {prompt_preview!r}"
+    return {
+        "id": f"chatcmn-mock{uuid.uuid4().hex[:6]}",
+        "object": "chat.completion",
+        "model": model_id,
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": content},
+                "finish_reason": "stop",
+            }
+        ],
+        "usage": {
+            "prompt_tokens": len(user_msg.split()),
+            "completion_tokens": len(content.split()),
+            "total_tokens": len(user_msg.split()) + len(content.split()),
+        },
+    }
+
+
 # --- HTTP handler -----------------------------------------------------------
 
 class _Handler(BaseHTTPRequestHandler):
@@ -254,6 +284,8 @@ class _Handler(BaseHTTPRequestHandler):
         try:
             if path == "/v1/predict":
                 self._send_json(build_predict_response(self._read_json()))
+            elif path == "/v1/chat/completions":
+                self._send_json(build_chat_response(self._read_json()))
             elif path.startswith("/v1/models/") and path.endswith("/load"):
                 model_id = path[len("/v1/models/"):-len("/load")]
                 self._send_json({"model_id": model_id, "status": "loaded"})

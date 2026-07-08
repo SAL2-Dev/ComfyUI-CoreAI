@@ -28,6 +28,7 @@ from .nodes.embedding import CoreAIImageTextSimilarity  # noqa: E402
 from .nodes.instance_seg import CoreAIInstanceSegmentation  # noqa: E402
 from .nodes.loader import CoreAIModelLoader, CoreAIHealthCheck  # noqa: E402
 from .nodes.apple_text import CoreAIAppleText  # noqa: E402
+from .nodes.chat import CoreAIChat  # noqa: E402
 
 # --- Capability detection --------------------------------------------------
 
@@ -76,6 +77,10 @@ if _COREAI_AVAILABLE:
     # Analysis
     NODE_CLASS_MAPPINGS["CoreAIImageTextSimilarity"] = CoreAIImageTextSimilarity
     NODE_DISPLAY_NAME_MAPPINGS["CoreAIImageTextSimilarity"] = "CLIP Similarity"
+
+    # Text — LLM chat via EngineFactory
+    NODE_CLASS_MAPPINGS["CoreAIChat"] = CoreAIChat
+    NODE_DISPLAY_NAME_MAPPINGS["CoreAIChat"] = "Chat (LLM)"
 
     # Utils
     NODE_CLASS_MAPPINGS["CoreAIModelLoader"] = CoreAIModelLoader

@@ -185,6 +185,26 @@ class CoreAIRunner:
 
         return self._request("POST", "/v1/predict", json=payload, model_id=model_id)
 
+    def chat(
+        self,
+        model_id: str,
+        messages: list[dict[str, str]],
+        max_tokens: int = 256,
+        temperature: float = 0.7,
+    ) -> dict[str, Any]:
+        """POST /v1/chat/completions — OpenAI-compatible chat completion.
+
+        Non-streaming: blocks until the full response is ready. For streaming,
+        use the /v1/chat/stream endpoint directly.
+        """
+        payload = {
+            "model": model_id,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+        return self._request("POST", "/v1/chat/completions", json=payload, model_id=model_id)
+
     def load_model(self, model_id: str) -> dict[str, Any]:
         """POST /v1/models/:id/load — download + load model."""
         return self._request("POST", f"/v1/models/{model_id}/load", model_id=model_id)

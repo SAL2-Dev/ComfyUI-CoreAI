@@ -134,3 +134,24 @@ def test_image_generation(runner):
                             prompt="a serene landscape")
     assert result["output"]["kind"] == "image"
     assert _is_png(result["output"]["output_path"])
+
+
+def test_chat_completion(runner):
+    """Test POST /v1/chat/completions — OpenAI-compatible chat."""
+    result = runner.chat(
+        model_id="qwen3-0-6b",
+        messages=[{"role": "user", "content": "What is the capital of France?"}],
+        max_tokens=128,
+        temperature=0.7,
+    )
+    assert result["object"] == "chat.completion"
+    assert result["model"] == "qwen3-0-6b"
+    assert len(result["choices"]) == 1
+    choice = result["choices"][0]
+    assert choice["message"]["role"] == "assistant"
+    assert choice["message"]["content"]
+    assert choice["finish_reason"] == "stop"
+    usage = result["usage"]
+    assert "prompt_tokens" in usage
+    assert "completion_tokens" in usage
+    assert "total_tokens" in usage
